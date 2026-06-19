@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.quanlydeadline.R; // Import file R mặc định của app
 import com.example.quanlydeadline.database.AppDatabase;
+import com.example.quanlydeadline.database.SessionManager;
 import com.example.quanlydeadline.database.UserDao;
 import com.example.quanlydeadline.models.User;
 
@@ -19,6 +20,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private TextView tvGoToRegister;
     private UserDao userDao;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +33,13 @@ public class LoginActivity extends AppCompatActivity {
         tvGoToRegister = findViewById(R.id.tvGoToRegister);
 
         userDao = AppDatabase.getDatabase(this).userDao();
+        sessionManager = new SessionManager(this);
+
+        // Nếu đã đăng nhập từ trước, bỏ qua màn hình Login luôn
+        if (sessionManager.isLoggedIn()) {
+            goToMain();
+            return;
+        }
 
         btnLogin.setOnClickListener(view -> handleLogin());
 
@@ -51,12 +60,19 @@ public class LoginActivity extends AppCompatActivity {
         User user = userDao.login(email, password);
 
         if (user != null) {
+            // Lưu lại phiên đăng nhập để các màn hình sau biết đang là user nào
+            sessionManager.saveSession(user.id, user.fullName);
+
             Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
+            goToMain();
         } else {
             Toast.makeText(this, "Sai email hoặc mật khẩu!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void goToMain() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

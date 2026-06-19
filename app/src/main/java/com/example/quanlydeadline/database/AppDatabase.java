@@ -1,14 +1,20 @@
 package com.example.quanlydeadline.database;
+
 import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+
+import com.example.quanlydeadline.models.Project;
+import com.example.quanlydeadline.models.Task;
 import com.example.quanlydeadline.models.User;
 
-@Database(entities = {User.class}, version = 1, exportSchema = false)
+@Database(entities = {User.class, Project.class, Task.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UserDao userDao();
+    public abstract ProjectDao projectDao();
+    public abstract TaskDao taskDao();
 
     private static volatile AppDatabase INSTANCE;
 
@@ -18,6 +24,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "quanlydeadline_db")
+                            .fallbackToDestructiveMigration()
                             .allowMainThreadQueries()
                             .build();
                 }

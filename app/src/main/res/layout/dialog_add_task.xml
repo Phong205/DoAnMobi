@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/edtTaskTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tên công việc / deadline (vd: Nộp báo cáo)"
+        android:inputType="text"
+        android:maxLines="1" />
+
+    <EditText
+        android:id="@+id/edtTaskNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="Ghi chú (tùy chọn)"
+        android:inputType="textMultiLine"
+        android:minLines="2" />
+
+    <TextView
+        android:id="@+id/tvPickTaskDueDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="12dp"
+        android:background="#F2F2F2"
+        android:text="Chọn hạn nộp (tùy chọn)"
+        android:textColor="#333333"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>
