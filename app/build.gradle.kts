@@ -1,15 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
     namespace = "com.example.quanlydeadline"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.quanlydeadline"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -40,6 +41,10 @@ android {
 }
 
 dependencies {
+    // Firebase BOM — quản lý version tự động
+    implementation (platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation ("com.google.firebase:firebase-firestore")
+    implementation ("com.google.firebase:firebase-auth")
 
     // AppCompat
     implementation(
@@ -65,6 +70,10 @@ dependencies {
     implementation(
         "androidx.cardview:cardview:1.0.0"
     )
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // Room Database
     val roomVersion = "2.6.1"
@@ -99,4 +108,5 @@ dependencies {
     androidTestImplementation(
         "androidx.test.espresso:espresso-core:3.6.1"
     )
+
 }

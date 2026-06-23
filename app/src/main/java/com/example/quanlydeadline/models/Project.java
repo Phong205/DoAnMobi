@@ -12,14 +12,7 @@ import androidx.room.PrimaryKey;
  * Mỗi đồ án có thể chứa nhiều Task (deadline / công việc con).
  */
 @Entity(
-        tableName = "projects",
-        foreignKeys = @ForeignKey(
-                entity = User.class,
-                parentColumns = "id",
-                childColumns = "user_id",
-                onDelete = ForeignKey.CASCADE
-        ),
-        indices = {@Index("user_id")}
+        tableName = "projects"
 )
 public class Project {
 
@@ -39,7 +32,7 @@ public class Project {
     public long createdAt;
 
     @ColumnInfo(name = "due_date")
-    public long dueDate; // Hạn chót tổng của đồ án (mốc nộp cuối cùng), millis. 0 nếu chưa đặt.
+    public long dueDate;
 
     public Project(int userId, @NonNull String name, String description, long createdAt, long dueDate) {
         this.userId = userId;

@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.quanlydeadline" />
+                  <option name="mobileSdkAppId" value="1:84756653124:android:3b8d7296d0ad4cea84c811" />
+                  <option name="projectId" value="quanlydeadline" />
+                  <option name="projectNumber" value="84756653124" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
