@@ -1,69 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="3dp">
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="2dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="14dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <!-- HÀNG 1: ICON + TÊN + MŨI TÊN -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Icon màu accent bên trái -->
+            <FrameLayout
+                android:id="@+id/frameIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerVertical="true"
+                android:background="@drawable/circle_accent"
+                android:padding="10dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@android:drawable/ic_dialog_info"
+                    android:tint="#FFFFFF" />
+
+            </FrameLayout>
+
+            <!-- Tên + mô tả -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/frameIcon"
+                android:layout_toStartOf="@id/btnArrow"
+                android:layout_centerVertical="true"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp">
+
+                <TextView
+                    android:id="@+id/tvProjectName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#111827"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/tvProjectDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="13sp"
+                    android:textColor="#6B7280"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <!-- Nút menu (3 chấm) -->
+            <ImageButton
+                android:id="@+id/btnArrow"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_more"
+                android:contentDescription="Tùy chọn" />
+
+        </RelativeLayout>
+
+        <!-- HÀNG 2: PROGRESS BAR + PHẦN TRĂM -->
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginTop="14dp">
 
             <TextView
-                android:id="@+id/tvProjectName"
-                android:layout_width="match_parent"
+                android:id="@+id/tvTaskCount"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:textColor="#000000"
-                tools:text="Đồ án Quản lý deadline" />
+                android:layout_centerVertical="true"
+                android:text="0/0 tasks"
+                android:textColor="#6B7280"
+                android:textSize="12sp" />
 
             <TextView
-                android:id="@+id/tvProjectDescription"
-                android:layout_width="match_parent"
+                android:id="@+id/tvProjectPercent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:maxLines="2"
-                android:ellipsize="end" />
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="0%"
+                android:textColor="#2962FF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvProjectDueDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textSize="13sp"
-                android:textColor="#D32F2F" />
+        </RelativeLayout>
 
-        </LinearLayout>
+        <ProgressBar
+            android:id="@+id/progressProject"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginTop="6dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="#2962FF"
+            android:progressBackgroundTint="#E2E8F0" />
 
+        <!-- HÀNG 3: HẠN CHÓT + NÚT SỬA/XÓA (ẩn, hiện khi bấm menu) -->
+        <TextView
+            android:id="@+id/tvProjectDueDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="12sp"
+            android:textColor="#EF4444"
+            android:visibility="gone" />
+
+        <!-- Nút Sửa/Xóa ẩn — hiển thị qua popup menu từ btnArrow -->
         <ImageButton
             android:id="@+id/btnEditProject"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Sửa đồ án"
-            android:src="@android:drawable/ic_menu_edit" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            android:contentDescription="Sửa đồ án" />
 
         <ImageButton
             android:id="@+id/btnDeleteProject"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Xóa đồ án"
-            android:src="@android:drawable/ic_menu_delete" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            android:contentDescription="Xóa đồ án" />
 
     </LinearLayout>
 

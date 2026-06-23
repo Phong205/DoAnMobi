@@ -1,37 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="20dp">
 
-    <EditText
-        android:id="@+id/edtProjectName"
-        android:layout_width="match_parent"
+    <!-- TÊN ĐỒ ÁN -->
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Tên đồ án (vd: Đồ án Quản lý deadline)"
-        android:inputType="text"
-        android:maxLines="1" />
+        android:text="Tên đồ án"
+        android:textColor="#374151"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/edtProjectDescription"
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="Mô tả ngắn (tùy chọn)"
-        android:inputType="textMultiLine"
-        android:minLines="2" />
+        android:layout_marginTop="8dp"
+        app:hintEnabled="false"
+        app:boxBackgroundColor="#F8FAFC"
+        app:boxStrokeColor="#E2E8F0"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtProjectName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Vd: Đồ án Lập Trình Mobile"
+            android:textColorHint="#94A3B8"
+            android:textColor="#1E293B"
+            android:inputType="text"
+            android:singleLine="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- MÔ TẢ -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Mô tả ngắn (tùy chọn)"
+        android:textColor="#374151"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:hintEnabled="false"
+        app:boxBackgroundColor="#F8FAFC"
+        app:boxStrokeColor="#E2E8F0"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtProjectDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nhập mô tả..."
+            android:textColorHint="#94A3B8"
+            android:textColor="#1E293B"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:maxLines="3" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- HẠN CHÓT -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Hạn chót đồ án (tùy chọn)"
+        android:textColor="#374151"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvPickDueDate"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:padding="12dp"
-        android:background="#F2F2F2"
-        android:text="Chọn hạn chót đồ án (tùy chọn)"
-        android:textColor="#333333"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/date_picker_bg"
         android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:text="📅  Chọn ngày..."
+        android:textColor="#94A3B8"
+        android:textSize="14sp"
         android:clickable="true"
         android:focusable="true" />
 
