@@ -14,6 +14,9 @@ import com.example.quanlydeadline.models.User;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class LoginActivity extends AppCompatActivity {
 
     private TextInputEditText edtEmail;
@@ -21,6 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     private MaterialButton btnLogin;
     private TextView tvGoToRegister;
     private SessionManager sessionManager;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         sessionManager = new SessionManager(this);
+        mAuth = FirebaseAuth.getInstance();
 
         // ✅ Nếu đã đăng nhập rồi thì skip thẳng vào Dashboard
         if (sessionManager.isLoggedIn()) {
@@ -57,20 +62,19 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        AppDatabase db = DatabaseClient.getInstance(this);
-        User user = db.userDao().login(email, password);
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener(result -> {
+                    FirebaseUser user = result.getUser();
+                    String fullName = user.getDisplayName() != null ? user.getDisplayName() : email;
 
-        if (user == null) {
-            Toast.makeText(this, "Sai email hoặc mật khẩu", Toast.LENGTH_SHORT).show();
-            return;
-        }
+                    sessionManager.saveSession(user.getUid().hashCode(), fullName);
 
-        // ✅ Lưu session — đây là dòng bị thiếu trước đây
-        sessionManager.saveSession(user.id, user.fullName);
-
-        Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-
-        goToDashboard(user.fullName);
+                    Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                    goToDashboard(fullName);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Sai email hoặc mật khẩu", Toast.LENGTH_SHORT).show()
+                );
     }
 
     private void goToDashboard(String fullName) {

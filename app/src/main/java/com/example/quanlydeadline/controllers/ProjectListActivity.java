@@ -24,6 +24,7 @@ import com.example.quanlydeadline.database.ProjectDao;
 import com.example.quanlydeadline.database.SessionManager;
 import com.example.quanlydeadline.database.TaskDao;
 import com.example.quanlydeadline.models.Project;
+import com.example.quanlydeadline.database.FirebaseSyncManager;
 
 import java.util.Calendar;
 import java.util.List;
@@ -42,6 +43,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
     private int currentUserId;
 
     private long selectedDueDate = 0;
+    private FirebaseSyncManager syncManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,8 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         fabAdd.setOnClickListener(v -> showProjectDialog(null));
 
         loadProjects();
+        syncManager = new FirebaseSyncManager();
+
         // Bottom Navigation - highlight Projects tab
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setSelectedItemId(R.id.nav_projects);
@@ -139,6 +143,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                         existingProject.description = description;
                         existingProject.dueDate = selectedDueDate;
                         projectDao.updateProject(existingProject);
+                        syncManager.syncProject(existingProject);
                         Toast.makeText(this, "Đã cập nhật đồ án", Toast.LENGTH_SHORT).show();
                     } else {
                         Project newProject = new Project(
@@ -149,6 +154,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                                 selectedDueDate
                         );
                         projectDao.insertProject(newProject);
+                        syncManager.syncProject(newProject);
                         Toast.makeText(this, "Đã thêm đồ án", Toast.LENGTH_SHORT).show();
                     }
                     loadProjects();
