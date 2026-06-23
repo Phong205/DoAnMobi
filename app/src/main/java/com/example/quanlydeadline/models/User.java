@@ -19,7 +19,6 @@ public class User {
     @ColumnInfo(name = "password_hash")
     public String passwordHash;
 
-    // Constructor
     public User(String fullName, String email, String passwordHash) {
         this.fullName = fullName;
         this.email = email;
