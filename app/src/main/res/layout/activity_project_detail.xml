@@ -2,78 +2,246 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".controllers.ProjectDetailActivity">
+    android:background="#F1F5F9">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:background="#2962FF"
+        app:elevation="0dp">
 
+        <!-- HEADER: NÚT BACK + TÊN + MENU -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#FFFFFF"
-            android:elevation="4dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="44dp"
+            android:paddingBottom="16dp">
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_media_previous"
+                    android:tint="#FFFFFF"
+                    android:contentDescription="Quay lại" />
+
+                <TextView
+                    android:id="@+id/tvProjectDetailTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/btnBack"
+                    android:layout_toStartOf="@id/btnMenu"
+                    android:layout_centerVertical="true"
+                    android:paddingStart="8dp"
+                    android:text="Tên Đồ Án"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <ImageButton
+                    android:id="@+id/btnMenu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_more"
+                    android:tint="#FFFFFF"
+                    android:contentDescription="Tùy chọn" />
+
+            </RelativeLayout>
+
+            <!-- MÔ TẢ ĐỒ ÁN -->
             <TextView
-                android:id="@+id/tvProjectDetailTitle"
+                android:id="@+id/tvProjectDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Tên đồ án"
-                android:textColor="#000000"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="8dp"
+                android:text=""
+                android:textColor="#C7D9FF"
+                android:textSize="14sp"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/tvTaskProgress"
+            <!-- PROGRESS TỔNG -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Hoàn thành: 0/0"
-                android:textColor="#666666"
-                android:textSize="14sp" />
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="Tổng tiến độ"
+                    android:textColor="#C7D9FF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvProjectPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="0%"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTaskProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="0 tasks"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+            </RelativeLayout>
+
+            <ProgressBar
+                android:id="@+id/progressOverall"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#FFFFFF"
+                android:progressBackgroundTint="#5B8BFF" />
+
+            <!-- TABS -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/tabContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Tab Todo -->
+                    <TextView
+                        android:id="@+id/tabTodo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:gravity="center"
+                        android:text="Todo"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/tab_selected_bg"
+                        android:layout_marginEnd="8dp" />
+
+                    <!-- Tab In Progress -->
+                    <TextView
+                        android:id="@+id/tabInProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:gravity="center"
+                        android:text="In Progress"
+                        android:textColor="#C7D9FF"
+                        android:textSize="14sp"
+                        android:background="@android:color/transparent"
+                        android:layout_marginEnd="8dp" />
+
+                    <!-- Tab Done -->
+                    <TextView
+                        android:id="@+id/tabDone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:gravity="center"
+                        android:text="Done"
+                        android:textColor="#C7D9FF"
+                        android:textSize="14sp"
+                        android:background="@android:color/transparent"
+                        android:layout_marginEnd="8dp" />
+
+                    <!-- Tab Quá hạn -->
+                    <TextView
+                        android:id="@+id/tabOverdue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:gravity="center"
+                        android:text="Quá hạn"
+                        android:textColor="#C7D9FF"
+                        android:textSize="14sp"
+                        android:background="@android:color/transparent" />
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
 
         </LinearLayout>
 
-        <FrameLayout
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- DANH SÁCH TASK -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerTasks"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="100dp" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerTasks"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="80dp" />
+        <TextView
+            android:id="@+id/tvEmptyTasks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Chưa có deadline nào.\nBấm nút + để thêm mới."
+            android:textColor="#94A3B8"
+            android:textSize="16sp"
+            android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/tvEmptyTasks"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="Chưa có deadline nào.\nBấm nút + để thêm mới."
-                android:textColor="#888888"
-                android:textSize="16sp"
-                android:visibility="gone" />
+    </FrameLayout>
 
-        </FrameLayout>
-
-    </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <!-- FAB THÊM TASK -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddTask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
-        android:contentDescription="Thêm deadline"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        android:text="+ Thêm Task"
+        android:textColor="#FFFFFF"
+        android:textAllCaps="false"
+        app:backgroundTint="#2962FF"
+        app:icon="@null"
+        app:elevation="6dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

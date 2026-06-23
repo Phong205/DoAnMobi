@@ -27,6 +27,7 @@ import com.example.quanlydeadline.models.Project;
 
 import java.util.Calendar;
 import java.util.List;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 
 public class ProjectListActivity extends AppCompatActivity implements ProjectAdapter.OnProjectActionListener {
@@ -40,7 +41,6 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
     private SessionManager sessionManager;
     private int currentUserId;
 
-    // Dùng để lưu ngày được chọn từ DatePickerDialog trong dialog thêm/sửa
     private long selectedDueDate = 0;
 
     @Override
@@ -70,6 +70,26 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         fabAdd.setOnClickListener(v -> showProjectDialog(null));
 
         loadProjects();
+        // Bottom Navigation - highlight Projects tab
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_projects);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                // Quay về Dashboard
+                finish();
+                return true;
+            } else if (id == R.id.nav_projects) {
+                // Đang ở Projects, không làm gì
+                return true;
+            } else if (id == R.id.nav_stats) {
+                return true;
+            } else if (id == R.id.nav_profile) {
+                // TODO: mở ProfileActivity
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
