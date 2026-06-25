@@ -33,4 +33,6 @@ public interface ProjectDao {
 
     @Query("DELETE FROM projects WHERE id = :projectId")
     void deleteProjectById(int projectId);
+    @Query("DELETE FROM projects WHERE user_id = :userId")
+    void deleteAllByUser(int userId);
 }

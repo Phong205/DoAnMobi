@@ -46,6 +46,8 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
     private long selectedDueDate = 0;
     private FirebaseSyncManager syncManager;
 
+    private boolean hasFetched = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +70,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         SearchView searchView = findViewById(R.id.searchProject);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ProjectAdapter(this);
+        adapter = new ProjectAdapter(this, taskDao);
         recyclerView.setAdapter(adapter);
 
         fabAdd.setOnClickListener(v -> showProjectDialog(null));
@@ -89,6 +91,8 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
 
         loadProjects();
         syncManager = new FirebaseSyncManager();
+
+
 
         // Bottom Navigation - highlight Projects tab
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
@@ -112,10 +116,19 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         });
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
         loadProjects();
+
+        // ✅ Chỉ fetch từ Firestore 1 lần duy nhất khi mở app
+        if (!hasFetched) {
+            hasFetched = true;
+            syncManager.fetchAndSaveProjects(currentUserId, projectDao, () -> {
+                runOnUiThread(() -> loadProjects());
+            });
+        }
     }
 
     private void loadProjects() {
@@ -199,7 +212,8 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                                 System.currentTimeMillis(),
                                 selectedDueDate
                         );
-                        projectDao.insertProject(newProject);
+                        long newId = projectDao.insertProject(newProject);
+                        newProject.id = (int) newId;
                         syncManager.syncProject(newProject);
                         Toast.makeText(this, "Đã thêm đồ án", Toast.LENGTH_SHORT).show();
                     }

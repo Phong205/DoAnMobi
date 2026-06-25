@@ -16,7 +16,7 @@ import androidx.room.PrimaryKey;
 )
 public class Project {
 
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     public int id;
 
     @ColumnInfo(name = "user_id")
