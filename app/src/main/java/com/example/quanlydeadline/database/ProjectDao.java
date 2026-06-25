@@ -28,6 +28,9 @@ public interface ProjectDao {
     @Query("SELECT * FROM projects WHERE id = :projectId LIMIT 1")
     Project getProjectById(int projectId);
 
+    @Query("SELECT * FROM projects WHERE user_id = :userId AND name LIKE '%' || :searchQuery || '%'")
+    List<Project> searchProjects(int userId, String searchQuery);
+
     @Query("DELETE FROM projects WHERE id = :projectId")
     void deleteProjectById(int projectId);
 }

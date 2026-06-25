@@ -69,19 +69,16 @@
                     android:src="@android:drawable/ic_menu_search"
                     android:alpha="0.5" />
 
-                <EditText
-                    android:id="@+id/edtSearchProject"
+                <androidx.appcompat.widget.SearchView
+                    android:id="@+id/searchProject"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="32dp"
-                    android:background="@null"
-                    android:hint="Tìm kiếm đồ án..."
-                    android:textColorHint="#94A3B8"
-                    android:textColor="#1E293B"
-                    android:textSize="14sp"
-                    android:inputType="text"
-                    android:singleLine="true"
-                    android:imeOptions="actionSearch" />
+                    android:layout_marginStart="24dp"
+                    app:iconifiedByDefault="false"
+                    app:queryHint="Tìm kiếm đồ án..."
+                    app:searchIcon="@null"
+                    app:queryBackground="@android:color/transparent"
+                    app:searchHintIcon="@null" />
 
             </RelativeLayout>
 

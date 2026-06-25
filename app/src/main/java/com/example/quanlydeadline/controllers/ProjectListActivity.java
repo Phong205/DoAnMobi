@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -64,12 +65,27 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         recyclerView = findViewById(R.id.recyclerProjects);
         tvEmpty = findViewById(R.id.tvEmptyProjects);
         FloatingActionButton fabAdd = findViewById(R.id.fabAddProject);
+        SearchView searchView = findViewById(R.id.searchProject);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ProjectAdapter(this);
         recyclerView.setAdapter(adapter);
 
         fabAdd.setOnClickListener(v -> showProjectDialog(null));
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                performSearch(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                performSearch(newText);
+                return true;
+            }
+        });
 
         loadProjects();
         syncManager = new FirebaseSyncManager();
@@ -105,9 +121,39 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
     private void loadProjects() {
         List<Project> projects = projectDao.getProjectsByUser(currentUserId);
         adapter.setProjects(projects);
-        tvEmpty.setVisibility(projects.isEmpty() ? View.VISIBLE : View.GONE);
+        updateUI(projects);
     }
 
+    private void performSearch(String query) {
+        if (query.isEmpty()) {
+            loadProjects();
+        } else {
+            List<Project> projects = projectDao.searchProjects(currentUserId, query);
+            adapter.setProjects(projects);
+            updateUI(projects);
+        }
+    }
+
+    private void updateUI(List<Project> projects) {
+        if (projects.isEmpty()) {
+            tvEmpty.setVisibility(View.VISIBLE);
+            // Kiểm tra SearchView có đang nhập gì không
+            SearchView searchView = findViewById(R.id.searchProject);
+            String query = searchView.getQuery().toString();
+            if (!query.isEmpty()) {
+                tvEmpty.setText("Không tìm thấy đồ án liên quan");
+            } else {
+                tvEmpty.setText("Chưa có đồ án nào");
+            }
+        } else {
+            tvEmpty.setVisibility(View.GONE);
+        }
+
+        TextView tvCount = findViewById(R.id.tvProjectCount);
+        if (tvCount != null) {
+            tvCount.setText(projects.size() + " đồ án");
+        }
+    }
 
     private void showProjectDialog(Project existingProject) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_project, null);
