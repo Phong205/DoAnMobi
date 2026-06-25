@@ -40,12 +40,18 @@ public class Task {
 
     @ColumnInfo(name = "is_done")
     public boolean isDone;
+    @ColumnInfo(name = "file_url")
+    public String fileUrl; // Đường dẫn tải file từ Firebase Storage
 
+    @ColumnInfo(name = "file_name")
+    public String fileName; // Tên file hiển thị trên giao diện
     public Task(int projectId, @NonNull String title, String note, long dueDate, boolean isDone) {
         this.projectId = projectId;
         this.title = title;
         this.note = note;
         this.dueDate = dueDate;
         this.isDone = isDone;
+        this.fileUrl = fileUrl;
+        this.fileName = fileName;
     }
-}
+    }

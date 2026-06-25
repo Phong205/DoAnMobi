@@ -9,6 +9,7 @@ import androidx.room.Update;
 import java.util.List;
 
 import com.example.quanlydeadline.models.Project;
+import com.example.quanlydeadline.models.ProjectWithProgress;
 
 @Dao
 public interface ProjectDao {
@@ -35,4 +36,24 @@ public interface ProjectDao {
     void deleteProjectById(int projectId);
     @Query("DELETE FROM projects WHERE user_id = :userId")
     void deleteAllByUser(int userId);
+
+    @Query("SELECT p.*, " +
+            "COUNT(t.id) as totalTasks, " +
+            "SUM(CASE WHEN t.is_done = 1 THEN 1 ELSE 0 END) as doneTasks " +
+            "FROM projects p " +
+            "LEFT JOIN tasks t ON p.id = t.project_id " +
+            "WHERE p.user_id = :userId " +
+            "GROUP BY p.id " +
+            "ORDER BY p.due_date ASC")
+    List<ProjectWithProgress> getProjectsWithProgress(int userId);
+
+    @Query("SELECT p.*, " +
+            "COUNT(t.id) as totalTasks, " +
+            "SUM(CASE WHEN t.is_done = 1 THEN 1 ELSE 0 END) as doneTasks " +
+            "FROM projects p " +
+            "LEFT JOIN tasks t ON p.id = t.project_id " +
+            "WHERE p.user_id = :userId AND p.name LIKE '%' || :searchQuery || '%' " +
+            "GROUP BY p.id " +
+            "ORDER BY p.due_date ASC")
+    List<ProjectWithProgress> searchProjectsWithProgress(int userId, String searchQuery);
 }
