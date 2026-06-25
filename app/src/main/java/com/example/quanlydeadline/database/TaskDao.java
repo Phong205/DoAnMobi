@@ -48,7 +48,6 @@ public interface TaskDao {
     @Query("SELECT t.* FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.user_id = :userId AND t.is_done = 0 AND t.due_date BETWEEN :now AND :in7days ORDER BY t.due_date ASC")
     List<Task> getUpcomingTasks(int userId, long now, long in7days);
 
-    // Đã hoàn thành
     @Query("SELECT t.* FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.user_id = :userId AND t.is_done = 1 ORDER BY t.due_date ASC")
     List<Task> getDoneTasks(int userId);
 }
