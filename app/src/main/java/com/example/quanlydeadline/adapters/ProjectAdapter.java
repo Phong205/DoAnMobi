@@ -13,8 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlydeadline.R;
-import com.example.quanlydeadline.database.TaskDao;
 import com.example.quanlydeadline.models.Project;
+import com.example.quanlydeadline.models.ProjectWithProgress;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +27,16 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         void onProjectDelete(Project project);
     }
 
-    private List<Project> projects = new ArrayList<>();
+    // 💡 Thay đổi từ List<Project> sang List<ProjectWithProgress>
+    private List<ProjectWithProgress> projects = new ArrayList<>();
     private final OnProjectActionListener listener;
-    private final TaskDao taskDao; // ✅ thêm TaskDao
 
-    public ProjectAdapter(OnProjectActionListener listener, TaskDao taskDao) {
+    // 💡 Không cần truyền TaskDao vào nữa, giúp tăng hiệu năng cuộn danh sách
+    public ProjectAdapter(OnProjectActionListener listener) {
         this.listener = listener;
-        this.taskDao = taskDao;
     }
 
-    public void setProjects(List<Project> newProjects) {
+    public void setProjects(List<ProjectWithProgress> newProjects) {
         this.projects = newProjects != null ? newProjects : new ArrayList<>();
         notifyDataSetChanged();
     }
@@ -51,62 +51,44 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
 
     @Override
     public void onBindViewHolder(@NonNull ProjectViewHolder holder, int position) {
-        Project project = projects.get(position);
+        ProjectWithProgress item = projects.get(position);
+        Project project = item.project;
 
         holder.tvName.setText(project.name);
+        holder.tvDescription.setText(project.description);
 
-        // Mô tả
-        if (project.description != null && !project.description.trim().isEmpty()) {
-            holder.tvDescription.setVisibility(View.VISIBLE);
-            holder.tvDescription.setText(project.description);
-        } else {
-            holder.tvDescription.setVisibility(View.GONE);
-        }
-
-        // Hạn chót
         if (project.dueDate > 0) {
-            String dateStr = DateFormat.format("dd/MM/yyyy", project.dueDate).toString();
-            holder.tvDueDate.setText("Hạn chót: " + dateStr);
             holder.tvDueDate.setVisibility(View.VISIBLE);
+            holder.tvDueDate.setText("Hạn chót: " + DateFormat.format("dd/MM/yyyy", project.dueDate));
         } else {
             holder.tvDueDate.setVisibility(View.GONE);
         }
 
-        // ✅ Đếm task từ DB và cập nhật UI
-        if (taskDao != null) {
-            int total = taskDao.countAllTasks(project.id);
-            int done = taskDao.countDoneTasks(project.id);
-            int percent = total > 0 ? (done * 100 / total) : 0;
+        // 💡 Lấy dữ liệu tiến độ đã được Room tính toán sẵn từ trước cực kỳ nhanh
+        int total = item.totalTasks;
+        int done = item.doneTasks;
+        int percent = item.getProgressPercentage();
 
-            holder.tvTaskCount.setText(done + "/" + total + " tasks");
-            holder.tvPercent.setText(percent + "%");
-            holder.progressBar.setProgress(percent);
+        holder.tvTaskCount.setText(done + "/" + total + " công việc");
+        holder.tvPercent.setText(percent + "%");
+        holder.progressBar.setProgress(percent);
 
-            // Màu % theo tiến độ
-            if (percent == 100) {
-                holder.tvPercent.setTextColor(0xFF16A34A); // xanh lá
-            } else if (percent >= 50) {
-                holder.tvPercent.setTextColor(0xFF2962FF); // xanh dương
-            } else {
-                holder.tvPercent.setTextColor(0xFFF59E0B); // vàng
-            }
-        }
-
-        // Click vào card → mở ProjectDetail
+        // Sự kiện click vào đồ án
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onProjectClick(project);
         });
 
-        // ✅ Nút 3 chấm → popup menu Sửa/Xóa
+        // Nút Menu mở rộng (Sửa / Xóa)
         holder.btnArrow.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(v.getContext(), v);
-            popup.getMenu().add(0, 1, 0, "✏️ Sửa đồ án");
-            popup.getMenu().add(0, 2, 1, "🗑️ Xóa đồ án");
-            popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == 1) {
+            PopupMenu popup = new PopupMenu(v.getContext(), holder.btnArrow);
+            popup.getMenu().add(1, 1, 1, "Sửa đồ án");
+            popup.getMenu().add(1, 2, 2, "Xóa đồ án");
+
+            popup.setOnMenuItemClickListener(menuItem -> {
+                if (menuItem.getItemId() == 1) {
                     if (listener != null) listener.onProjectEdit(project);
                     return true;
-                } else if (item.getItemId() == 2) {
+                } else if (menuItem.getItemId() == 2) {
                     if (listener != null) listener.onProjectDelete(project);
                     return true;
                 }
@@ -125,19 +107,16 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         TextView tvName, tvDescription, tvDueDate, tvTaskCount, tvPercent;
         ProgressBar progressBar;
         ImageButton btnArrow;
-        View btnEdit, btnDelete;
 
         ProjectViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvProjectName);
             tvDescription = itemView.findViewById(R.id.tvProjectDescription);
             tvDueDate = itemView.findViewById(R.id.tvProjectDueDate);
-            tvTaskCount = itemView.findViewById(R.id.tvTaskCount);       // ✅
-            tvPercent = itemView.findViewById(R.id.tvProjectPercent);    // ✅
-            progressBar = itemView.findViewById(R.id.progressProject);   // ✅
-            btnArrow = itemView.findViewById(R.id.btnArrow);             // ✅
-            btnEdit = itemView.findViewById(R.id.btnEditProject);
-            btnDelete = itemView.findViewById(R.id.btnDeleteProject);
+            tvTaskCount = itemView.findViewById(R.id.tvTaskCount);
+            tvPercent = itemView.findViewById(R.id.tvProjectPercent);
+            progressBar = itemView.findViewById(R.id.progressProject);
+            btnArrow = itemView.findViewById(R.id.btnArrow);
         }
     }
 }

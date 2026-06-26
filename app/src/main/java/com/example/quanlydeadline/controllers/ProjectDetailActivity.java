@@ -3,7 +3,10 @@ package com.example.quanlydeadline.controllers;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -11,6 +14,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,9 +36,12 @@ import java.util.Locale;
 import android.widget.SeekBar;
 import android.widget.RelativeLayout;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class ProjectDetailActivity extends AppCompatActivity implements TaskAdapter.OnTaskActionListener {
-
+    private Uri selectedFileUri = null;
+    private String selectedFileName = null;
     public static final String EXTRA_PROJECT_ID = "project_id";
     public static final String EXTRA_PROJECT_NAME = "project_name";
 
@@ -322,5 +330,78 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
+    }
+    private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    selectedFileUri = result.getData().getData();
+                    // Lấy tên file thực tế từ Uri
+                    selectedFileName = getFileName(selectedFileUri);
+                    Toast.makeText(this, "Đã chọn file: " + selectedFileName, Toast.LENGTH_SHORT).show();
+                }
+            }
+    );
+
+    // Hàm bổ trợ lấy tên file từ Uri
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (index != -1) result = cursor.getString(index);
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) result = result.substring(cut + 1);
+        }
+        return result;
+    }
+
+    // 2. Hàm mở trình chọn file (Gắn vào nút "Đính kèm file" trong dialog_add_task)
+    private void openFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*"); // Cho phép chọn mọi loại file
+        filePickerLauncher.launch(intent);
+    }
+
+    // 3. Hàm upload file lên Firebase Storage khi nhấn "Lưu Task"
+    private void uploadFileAndSaveTask(Task task) {
+        if (selectedFileUri == null) {
+            // Nếu không chọn file, lưu task bình thường
+            taskDao.insertTask(task);
+            syncManager.syncTask(task);
+            loadTasks();
+            return;
+        }
+
+        // Tạo đường dẫn lưu trên Firebase Storage: /tasks/timestamp_tenfile.ext
+        String storagePath = "tasks/" + System.currentTimeMillis() + "_" + selectedFileName;
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(storagePath);
+
+        // Bắt đầu upload file
+        storageRef.putFile(selectedFileUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    // Upload thành công, tiến hành lấy URL download
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        // Đã có link file trực tuyến từ Firebase!
+                        task.fileUrl = uri.toString();
+                        task.fileName = selectedFileName;
+
+                        // Lưu vào Room Database local và đồng bộ lên Firestore
+                        taskDao.insertTask(task);
+                        syncManager.syncTask(task);
+
+                        loadTasks(); // Reset lại danh sách hiển thị trên màn hình
+                        Toast.makeText(ProjectDetailActivity.this, "Tải lên file thành công!", Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(ProjectDetailActivity.this, "Upload file thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 }

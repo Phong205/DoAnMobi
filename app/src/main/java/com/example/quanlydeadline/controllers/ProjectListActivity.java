@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlydeadline.LoginActivity;
+import com.example.quanlydeadline.models.ProjectWithProgress;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.example.quanlydeadline.R;
@@ -27,8 +28,10 @@ import com.example.quanlydeadline.database.TaskDao;
 import com.example.quanlydeadline.models.Project;
 import com.example.quanlydeadline.database.FirebaseSyncManager;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 
@@ -70,7 +73,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         SearchView searchView = findViewById(R.id.searchProject);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ProjectAdapter(this, taskDao);
+        adapter = new ProjectAdapter(this);
         recyclerView.setAdapter(adapter);
 
         fabAdd.setOnClickListener(v -> showProjectDialog(null));
@@ -91,7 +94,6 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
 
         loadProjects();
         syncManager = new FirebaseSyncManager();
-
 
 
         // Bottom Navigation - highlight Projects tab
@@ -132,18 +134,41 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
     }
 
     private void loadProjects() {
-        List<Project> projects = projectDao.getProjectsByUser(currentUserId);
-        adapter.setProjects(projects);
-        updateUI(projects);
+        List<ProjectWithProgress> list = projectDao.getProjectsWithProgress(currentUserId);
+        adapter.setProjects(list);
+
+        if (list.isEmpty()) {
+            tvEmpty.setVisibility(View.VISIBLE);
+        } else {
+            tvEmpty.setVisibility(View.GONE);
+        }
     }
 
     private void performSearch(String query) {
         if (query.isEmpty()) {
             loadProjects();
         } else {
-            List<Project> projects = projectDao.searchProjects(currentUserId, query);
-            adapter.setProjects(projects);
-            updateUI(projects);
+            // 1. Lấy danh sách Project thô từ database theo từ khóa tìm kiếm
+            List<Project> rawProjects = projectDao.searchProjects(currentUserId, query);
+
+            // 2. Tạo một danh sách mới chứa kiểu dữ liệu mà Adapter yêu cầu
+            List<ProjectWithProgress> projectsWithProgress = new ArrayList<>();
+
+            // 3. Vòng lặp chuyển đổi từng Project thành ProjectWithProgress
+            for (Project p : rawProjects) {
+                // Lấy số lượng công việc của đồ án này để tính tiến độ
+                int total = taskDao.countAllTasks(p.id);
+                int done = taskDao.countDoneTasks(p.id);
+
+                // Khởi tạo Object chứa tiến độ (Thay đổi constructor tùy theo cấu trúc class ProjectWithProgress của bạn)
+                ProjectWithProgress pwp = new ProjectWithProgress(p, total, done);
+
+                projectsWithProgress.add(pwp);
+            }
+
+            // 4. Truyền danh sách đã chuyển đổi vào Adapter (Hết lỗi gạch đỏ)
+            adapter.setProjects(projectsWithProgress);
+            updateUI(rawProjects); // Hoặc updateUI(projectsWithProgress) tùy hàm updateUI của bạn nhận gì
         }
     }
 
