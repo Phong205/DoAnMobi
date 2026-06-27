@@ -2,6 +2,7 @@ package com.example.quanlydeadline;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -13,8 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlydeadline.adapters.TaskAdapter;
 import com.example.quanlydeadline.controllers.ProjectListActivity;
 import com.example.quanlydeadline.database.AppDatabase;
+import com.example.quanlydeadline.database.NotificationHelper;
 import com.example.quanlydeadline.database.SessionManager;
 import com.example.quanlydeadline.database.TaskDao;
+import com.example.quanlydeadline.models.DeadlineNotification;
 import com.example.quanlydeadline.models.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -22,19 +25,21 @@ import java.util.List;
 
 public class DashboardActivity extends AppCompatActivity {
 
-    private TextView txtGreeting;
-    private TextView tvFilterLabel;
+    private TextView txtGreeting, tvFilterLabel;
     private TaskDao taskDao;
     private int currentUserId;
     private RecyclerView recyclerDeadlines;
     private TaskAdapter taskAdapter;
+
+    // Badge thông báo
+    private TextView tvNotifBadge;
+    private ImageView ivBell;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        // Khởi tạo DAO và session
         SessionManager sessionManager = new SessionManager(this);
         currentUserId = sessionManager.getUserId();
         taskDao = AppDatabase.getDatabase(this).taskDao();
@@ -42,79 +47,99 @@ public class DashboardActivity extends AppCompatActivity {
         txtGreeting = findViewById(R.id.txtGreeting);
         tvFilterLabel = findViewById(R.id.tvFilterLabel);
         recyclerDeadlines = findViewById(R.id.recyclerDeadlines);
+        ivBell = findViewById(R.id.ivBell);
+        tvNotifBadge = findViewById(R.id.tvNotifBadge);
 
         String fullName = getIntent().getStringExtra("FULL_NAME");
-        if (fullName != null) {
-            txtGreeting.setText("Xin chào, " + fullName + " 👋");
-        }
+        if (fullName != null) txtGreeting.setText("Xin chào, " + fullName + " 👋");
 
-        // Setup RecyclerView
         recyclerDeadlines.setLayoutManager(new LinearLayoutManager(this));
         taskAdapter = new TaskAdapter(null);
         recyclerDeadlines.setAdapter(taskAdapter);
 
-        // Load mặc định: tất cả
         loadAllTasks();
 
-        // Bộ lọc
+        // ✅ Chuông thông báo → mở NotificationActivity
+        ivBell.setOnClickListener(v ->
+                startActivity(new Intent(this, NotificationActivity.class))
+        );
+
+        // Filter
         ImageView btnFilter = findViewById(R.id.btnFilter);
         btnFilter.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this, btnFilter);
-            popup.getMenu().add(0, 0, 0, "Tổng đồ án");
+            popup.getMenu().add(0, 0, 0, "Tất cả");
             popup.getMenu().add(0, 1, 1, "Sắp hết hạn");
             popup.getMenu().add(0, 2, 2, "Hoàn thành");
-
             popup.setOnMenuItemClickListener(item -> {
                 switch (item.getItemId()) {
-                    case 0:
-                        tvFilterLabel.setText("Tất cả đồ án");
-                        loadAllTasks();
-                        break;
-                    case 1:
-                        tvFilterLabel.setText("Sắp hết hạn");
-                        loadUpcomingTasks();
-                        break;
-                    case 2:
-                        tvFilterLabel.setText("Hoàn thành");
-                        loadDoneTasks();
-                        break;
+                    case 0: tvFilterLabel.setText("Tất cả đồ án"); loadAllTasks(); break;
+                    case 1: tvFilterLabel.setText("Sắp hết hạn"); loadUpcomingTasks(); break;
+                    case 2: tvFilterLabel.setText("Hoàn thành"); loadDoneTasks(); break;
                 }
                 return true;
             });
             popup.show();
         });
 
-        // Xem tất cả
         findViewById(R.id.tvSeeAll).setOnClickListener(v -> navigateToProjects());
 
-        // Bottom Navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setSelectedItemId(R.id.nav_home);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) return true;
             else if (id == R.id.nav_projects) { navigateToProjects(); return true; }
-            else if (id == R.id.nav_stats) return true;
-            else if (id == R.id.nav_profile) return true;
             return false;
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // ✅ Cập nhật badge mỗi lần quay về dashboard
+        updateNotificationBadge();
+    }
+
+    // ✅ Đếm thông báo chưa đọc và hiển thị badge
+    private void updateNotificationBadge() {
+        new Thread(() -> {
+            List<Task> tasks = taskDao.getAllTasksByUser(currentUserId);
+            List<DeadlineNotification> notifications = NotificationHelper.generateNotifications(tasks);
+            int count = notifications.size();
+
+            runOnUiThread(() -> {
+                if (count > 0) {
+                    tvNotifBadge.setVisibility(View.VISIBLE);
+                    tvNotifBadge.setText(count > 9 ? "9+" : String.valueOf(count));
+                } else {
+                    tvNotifBadge.setVisibility(View.GONE);
+                }
+            });
+        }).start();
+    }
+
     private void loadAllTasks() {
-        List<Task> tasks = taskDao.getAllTasksByUser(currentUserId);
-        taskAdapter.setTasks(tasks);
+        new Thread(() -> {
+            List<Task> tasks = taskDao.getAllTasksByUser(currentUserId);
+            runOnUiThread(() -> taskAdapter.setTasks(tasks));
+        }).start();
     }
 
     private void loadUpcomingTasks() {
-        long now = System.currentTimeMillis();
-        long in7days = now + (7L * 24 * 60 * 60 * 1000);
-        List<Task> tasks = taskDao.getUpcomingTasks(currentUserId, now, in7days);
-        taskAdapter.setTasks(tasks);
+        new Thread(() -> {
+            long now = System.currentTimeMillis();
+            long in7days = now + (7L * 24 * 60 * 60 * 1000);
+            List<Task> tasks = taskDao.getUpcomingTasks(currentUserId, now, in7days);
+            runOnUiThread(() -> taskAdapter.setTasks(tasks));
+        }).start();
     }
 
     private void loadDoneTasks() {
-        List<Task> tasks = taskDao.getDoneTasks(currentUserId);
-        taskAdapter.setTasks(tasks);
+        new Thread(() -> {
+            List<Task> tasks = taskDao.getDoneTasks(currentUserId);
+            runOnUiThread(() -> taskAdapter.setTasks(tasks));
+        }).start();
     }
 
     private void navigateToProjects() {

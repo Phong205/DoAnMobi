@@ -2,7 +2,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F8FAFC">
@@ -47,28 +46,34 @@
 
             </LinearLayout>
 
+            <!-- ✅ CHUÔNG THÔNG BÁO — thêm id vào đây -->
             <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_alignParentEnd="true">
 
                 <ImageView
+                    android:id="@+id/ivBell"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="@drawable/circle_white"
                     android:padding="12dp"
-                    android:src="@android:drawable/ic_dialog_info" />
+                    android:src="@android:drawable/ic_popup_reminder"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
+                    android:id="@+id/tvNotifBadge"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_gravity="end"
                     android:background="@drawable/badge_red"
                     android:gravity="center"
-                    android:text="3"
+                    android:text="0"
                     android:textColor="#FFFFFF"
                     android:textSize="10sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
             </FrameLayout>
 
@@ -176,7 +181,6 @@
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
-       />
+        app:itemTextColor="@color/bottom_nav_color"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
