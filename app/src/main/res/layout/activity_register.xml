@@ -263,9 +263,9 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoogleRegister"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginTop="16dp"
                 android:text="Đăng ký với Google"
                 android:textColor="#333333"
                 android:textSize="16sp"
