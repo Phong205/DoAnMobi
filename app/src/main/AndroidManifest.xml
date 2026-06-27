@@ -45,6 +45,10 @@
             android:name=".controllers.ProjectDetailActivity"
             android:exported="false"
             android:label="Chi tiết đồ án" />
+        <activity
+            android:name=".NotificationActivity"
+            android:exported="false"
+            android:label="Thông Báo" />
 
         <activity
             android:name=".ForgotPasswordActivity"
