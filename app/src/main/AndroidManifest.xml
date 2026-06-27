@@ -54,6 +54,7 @@
             android:name=".ForgotPasswordActivity"
             android:exported="false" />
 
+        <activity android:name=".StatsActivity" />
     </application>
 
 </manifest>

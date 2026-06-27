@@ -117,4 +117,8 @@ dependencies {
         "androidx.test.espresso:espresso-core:3.6.1"
     )
 
+    implementation(
+        "com.github.PhilJay:MPAndroidChart:v3.1.0"
+    )
+
 }

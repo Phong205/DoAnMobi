@@ -73,9 +73,18 @@ public class DashboardActivity extends AppCompatActivity {
             popup.getMenu().add(0, 2, 2, "Hoàn thành");
             popup.setOnMenuItemClickListener(item -> {
                 switch (item.getItemId()) {
-                    case 0: tvFilterLabel.setText("Tất cả đồ án"); loadAllTasks(); break;
-                    case 1: tvFilterLabel.setText("Sắp hết hạn"); loadUpcomingTasks(); break;
-                    case 2: tvFilterLabel.setText("Hoàn thành"); loadDoneTasks(); break;
+                    case 0:
+                        tvFilterLabel.setText("Tất cả đồ án");
+                        loadAllTasks();
+                        break;
+                    case 1:
+                        tvFilterLabel.setText("Sắp hết hạn");
+                        loadUpcomingTasks();
+                        break;
+                    case 2:
+                        tvFilterLabel.setText("Hoàn thành");
+                        loadDoneTasks();
+                        break;
                 }
                 return true;
             });
@@ -89,7 +98,13 @@ public class DashboardActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) return true;
-            else if (id == R.id.nav_projects) { navigateToProjects(); return true; }
+            else if (id == R.id.nav_projects) {
+                navigateToProjects();
+                return true;
+            } else if (id == R.id.nav_stats) {
+                startActivity(new Intent(this, StatsActivity.class));
+                return true;
+            } else if (id == R.id.nav_profile) return true;
             return false;
         });
     }

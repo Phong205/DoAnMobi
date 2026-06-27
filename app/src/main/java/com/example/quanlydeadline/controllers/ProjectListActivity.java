@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlydeadline.LoginActivity;
+import com.example.quanlydeadline.StatsActivity;
 import com.example.quanlydeadline.models.ProjectWithProgress;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -109,6 +110,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                 // Đang ở Projects, không làm gì
                 return true;
             } else if (id == R.id.nav_stats) {
+                startActivity(new Intent(this, StatsActivity.class));
                 return true;
             } else if (id == R.id.nav_profile) {
                 // TODO: mở ProfileActivity
