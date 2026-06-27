@@ -50,6 +50,10 @@
             android:exported="false"
             android:label="Thông Báo" />
 
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "84756653124-s1h15p8ivunsdqih7m6qbb0pvekbp1bg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quanlydeadline",
+            "certificate_hash": "2ba12dcd72fcb7f2eeead5ab9cbc3f49f770a63d"
+          }
+        },
+        {
           "client_id": "84756653124-2ne720a8npfp0r63bc6397rqbmsgetgl.apps.googleusercontent.com",
           "client_type": 3
         }
