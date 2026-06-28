@@ -41,6 +41,11 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Định dạng Email không hợp lệ (vd: name@domain.com)", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         mAuth.sendPasswordResetEmail(email)
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Đã gửi Email! Hãy kiểm tra hộp thư (cả mục Spam)", Toast.LENGTH_LONG).show();
