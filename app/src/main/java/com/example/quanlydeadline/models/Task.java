@@ -7,10 +7,6 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-/**
- * Task = một deadline / công việc con bên trong một Project (đồ án).
- * Ví dụ đồ án "Web bán hàng" có thể có nhiều Task: "Nộp đề cương", "Demo lần 1", "Nộp báo cáo cuối"...
- */
 @Entity(
         tableName = "tasks",
         foreignKeys = @ForeignKey(
@@ -36,22 +32,29 @@ public class Task {
     public String note;
 
     @ColumnInfo(name = "due_date")
-    public long dueDate; // millis (System.currentTimeMillis())
+    public long dueDate;
 
     @ColumnInfo(name = "is_done")
     public boolean isDone;
+
+    // ✅ Thêm field priority: 0=thấp, 1=trung bình, 2=cao
+    @ColumnInfo(name = "priority")
+    public int priority;
+
     @ColumnInfo(name = "file_url")
-    public String fileUrl; // Đường dẫn tải file từ Firebase Storage
+    public String fileUrl;
 
     @ColumnInfo(name = "file_name")
-    public String fileName; // Tên file hiển thị trên giao diện
+    public String fileName;
+
     public Task(int projectId, @NonNull String title, String note, long dueDate, boolean isDone) {
         this.projectId = projectId;
         this.title = title;
         this.note = note;
         this.dueDate = dueDate;
         this.isDone = isDone;
-        this.fileUrl = fileUrl;
-        this.fileName = fileName;
+        this.priority = 1; // mặc định trung bình
+        this.fileUrl = null;
+        this.fileName = null;
     }
-    }
+}

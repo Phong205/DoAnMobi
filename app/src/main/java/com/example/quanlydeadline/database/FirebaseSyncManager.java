@@ -58,21 +58,29 @@ public class FirebaseSyncManager {
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     new Thread(() -> {
-                        // ✅ Xóa hết data cũ trong Room trước, rồi insert lại từ Firestore
-                        projectDao.deleteAllByUser(userId);
-
                         for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                             try {
                                 int docId = Integer.parseInt(doc.getId());
-                                Project project = new Project(
-                                        userId,
-                                        doc.getString("name") != null ? doc.getString("name") : "",
-                                        doc.getString("description") != null ? doc.getString("description") : "",
-                                        doc.getLong("createdAt") != null ? doc.getLong("createdAt") : 0,
-                                        doc.getLong("dueDate") != null ? doc.getLong("dueDate") : 0
-                                );
-                                project.id = docId;
-                                projectDao.insertProject(project);
+                                Project existing = projectDao.getProjectById(docId);
+
+                                if (existing == null) {
+                                    // ✅ Chưa có → insert
+                                    Project project = new Project(
+                                            userId,
+                                            doc.getString("name") != null ? doc.getString("name") : "",
+                                            doc.getString("description") != null ? doc.getString("description") : "",
+                                            doc.getLong("createdAt") != null ? doc.getLong("createdAt") : 0,
+                                            doc.getLong("dueDate") != null ? doc.getLong("dueDate") : 0
+                                    );
+                                    project.id = docId;
+                                    projectDao.insertProject(project);
+                                } else {
+                                    // ✅ Đã có → update
+                                    existing.name = doc.getString("name") != null ? doc.getString("name") : existing.name;
+                                    existing.description = doc.getString("description") != null ? doc.getString("description") : existing.description;
+                                    existing.dueDate = doc.getLong("dueDate") != null ? doc.getLong("dueDate") : existing.dueDate;
+                                    projectDao.updateProject(existing);
+                                }
                             } catch (NumberFormatException e) {
                                 Log.e("Firebase", "Invalid doc ID", e);
                             }

@@ -1,4 +1,4 @@
-package com.example.quanlydeadline.controllers;
+package com.example.quanlydeadline;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.quanlydeadline.R;
 import com.example.quanlydeadline.adapters.TaskAdapter;
 import com.example.quanlydeadline.database.AppDatabase;
 import com.example.quanlydeadline.database.FirebaseSyncManager;
@@ -261,11 +259,13 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         existingTask.title = title;
                         existingTask.note = note;
                         existingTask.dueDate = selectedDueDate;
+                        existingTask.priority = selectedPriority[0]; // 2705 C1eadp nh1eadt priority
                         taskDao.updateTask(existingTask);
                         syncManager.syncTask(existingTask);
                         Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
                     } else {
                         Task newTask = new Task(projectId, title, note, selectedDueDate, false);
+                        newTask.priority = selectedPriority[0]; // 2705 L01b0u priority 011100e3 ch1ecdn
                         long newId = taskDao.insertTask(newTask);
                         newTask.id = (int) newId;
                         syncManager.syncTask(newTask);
@@ -386,13 +386,10 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         // Bắt đầu upload file
         storageRef.putFile(selectedFileUri)
                 .addOnSuccessListener(taskSnapshot -> {
-                    // Upload thành công, tiến hành lấy URL download
                     storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        // Đã có link file trực tuyến từ Firebase!
                         task.fileUrl = uri.toString();
                         task.fileName = selectedFileName;
 
-                        // Lưu vào Room Database local và đồng bộ lên Firestore
                         taskDao.insertTask(task);
                         syncManager.syncTask(task);
 
