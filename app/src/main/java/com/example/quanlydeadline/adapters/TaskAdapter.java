@@ -49,13 +49,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = tasks.get(position);
 
-        // Tránh trigger listener khi set lại trạng thái checkbox do recycle view
         holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(task.isDone);
         applyDoneStyle(holder, task.isDone);
 
         holder.tvTitle.setText(task.title);
 
+        // Note badge
         if (task.note != null && !task.note.trim().isEmpty()) {
             holder.tvNote.setVisibility(View.VISIBLE);
             holder.tvNote.setText(task.note);
@@ -63,11 +63,30 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             holder.tvNote.setVisibility(View.GONE);
         }
 
+        // Due date
         if (task.dueDate > 0) {
-            String dateStr = DateFormat.format("dd/MM/yyyy HH:mm", task.dueDate).toString();
-            holder.tvDueDate.setText(dateStr);
+            holder.tvDueDate.setText("📅 " + DateFormat.format("dd/MM/yyyy HH:mm", task.dueDate));
         } else {
-            holder.tvDueDate.setText("Chưa đặt hạn");
+            holder.tvDueDate.setText("📅 Chưa đặt hạn");
+        }
+
+        // ✅ Priority badge
+        switch (task.priority) {
+            case 2: // Cao
+                holder.tvPriorityBadge.setText("Cao");
+                holder.tvPriorityBadge.setTextColor(0xFFEF4444);
+                holder.tvPriorityBadge.setBackgroundResource(R.drawable.badge_priority_high);
+                break;
+            case 1: // Trung bình
+                holder.tvPriorityBadge.setText("Trung bình");
+                holder.tvPriorityBadge.setTextColor(0xFFF59E0B);
+                holder.tvPriorityBadge.setBackgroundResource(R.drawable.badge_priority_medium);
+                break;
+            default: // 0 = Thấp
+                holder.tvPriorityBadge.setText("Thấp");
+                holder.tvPriorityBadge.setTextColor(0xFF16A34A);
+                holder.tvPriorityBadge.setBackgroundResource(R.drawable.badge_priority_low);
+                break;
         }
 
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -100,6 +119,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
         TextView tvTitle, tvNote, tvDueDate;
+        TextView tvPriorityBadge; // ✅ thêm field này
         View btnEdit, btnDelete;
 
         TaskViewHolder(@NonNull View itemView) {
@@ -108,6 +128,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             tvTitle = itemView.findViewById(R.id.tvTaskTitle);
             tvNote = itemView.findViewById(R.id.tvTaskNote);
             tvDueDate = itemView.findViewById(R.id.tvTaskDueDate);
+            tvPriorityBadge = itemView.findViewById(R.id.tvPriorityBadge); // ✅ thêm dòng này
             btnEdit = itemView.findViewById(R.id.btnEditTask);
             btnDelete = itemView.findViewById(R.id.btnDeleteTask);
         }

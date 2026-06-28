@@ -37,12 +37,12 @@
             android:label="Dashboard" />
 
         <activity
-            android:name=".controllers.ProjectListActivity"
+            android:name=".ProjectListActivity"
             android:exported="false"
             android:label="Danh sách đồ án" />
 
         <activity
-            android:name=".controllers.ProjectDetailActivity"
+            android:name=".ProjectDetailActivity"
             android:exported="false"
             android:label="Chi tiết đồ án" />
         <activity

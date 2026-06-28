@@ -5,13 +5,15 @@
     android:orientation="vertical"
     android:background="#F8FAFC">
 
-    <!-- HEADER -->
+    <!-- HEADER — thêm paddingTop để tránh status bar -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:background="#FFFFFF"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="12dp"
         android:elevation="4dp">
 
         <ImageButton
@@ -55,7 +57,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Empty state -->
             <TextView
                 android:id="@+id/tvEmptyNotification"
                 android:layout_width="match_parent"
@@ -67,7 +68,6 @@
                 android:padding="32dp"
                 android:visibility="gone"/>
 
-            <!-- CHƯA ĐỌC -->
             <TextView
                 android:id="@+id/tvUnreadCount"
                 android:layout_width="wrap_content"
@@ -85,7 +85,6 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
 
-            <!-- ĐÃ ĐỌC -->
             <TextView
                 android:id="@+id/tvReadCount"
                 android:layout_width="wrap_content"

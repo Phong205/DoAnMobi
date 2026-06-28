@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlydeadline.adapters.TaskAdapter;
-import com.example.quanlydeadline.controllers.ProjectListActivity;
 import com.example.quanlydeadline.database.AppDatabase;
 import com.example.quanlydeadline.database.NotificationHelper;
 import com.example.quanlydeadline.database.SessionManager;
@@ -31,7 +30,6 @@ public class DashboardActivity extends AppCompatActivity {
     private RecyclerView recyclerDeadlines;
     private TaskAdapter taskAdapter;
 
-    // Badge thông báo
     private TextView tvNotifBadge;
     private ImageView ivBell;
 
@@ -54,17 +52,23 @@ public class DashboardActivity extends AppCompatActivity {
         if (fullName != null) txtGreeting.setText("Xin chào, " + fullName + " 👋");
 
         recyclerDeadlines.setLayoutManager(new LinearLayoutManager(this));
-        taskAdapter = new TaskAdapter(null);
+
+        // ✅ Dùng lambda rỗng thay null — dashboard chỉ xem, không cần action
+        taskAdapter = new TaskAdapter(new TaskAdapter.OnTaskActionListener() {
+            @Override public void onTaskCheckedChange(Task task, boolean isChecked) {}
+            @Override public void onTaskEdit(Task task) {}
+            @Override public void onTaskDelete(Task task) {}
+        });
         recyclerDeadlines.setAdapter(taskAdapter);
 
         loadAllTasks();
 
-        // ✅ Chuông thông báo → mở NotificationActivity
+        // Chuông → mở NotificationActivity
         ivBell.setOnClickListener(v ->
                 startActivity(new Intent(this, NotificationActivity.class))
         );
 
-        // Filter
+        // Filter popup
         ImageView btnFilter = findViewById(R.id.btnFilter);
         btnFilter.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this, btnFilter);
@@ -72,20 +76,10 @@ public class DashboardActivity extends AppCompatActivity {
             popup.getMenu().add(0, 1, 1, "Sắp hết hạn");
             popup.getMenu().add(0, 2, 2, "Hoàn thành");
             popup.setOnMenuItemClickListener(item -> {
-                switch (item.getItemId()) {
-                    case 0:
-                        tvFilterLabel.setText("Tất cả đồ án");
-                        loadAllTasks();
-                        break;
-                    case 1:
-                        tvFilterLabel.setText("Sắp hết hạn");
-                        loadUpcomingTasks();
-                        break;
-                    case 2:
-                        tvFilterLabel.setText("Hoàn thành");
-                        loadDoneTasks();
-                        break;
-                }
+                int id = item.getItemId();
+                if (id == 0) { tvFilterLabel.setText("Tất cả đồ án"); loadAllTasks(); }
+                else if (id == 1) { tvFilterLabel.setText("Sắp hết hạn"); loadUpcomingTasks(); }
+                else if (id == 2) { tvFilterLabel.setText("Hoàn thành"); loadDoneTasks(); }
                 return true;
             });
             popup.show();
@@ -97,14 +91,18 @@ public class DashboardActivity extends AppCompatActivity {
         bottomNav.setSelectedItemId(R.id.nav_home);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) return true;
-            else if (id == R.id.nav_projects) {
+            if (id == R.id.nav_home) {
+                return true;
+            } else if (id == R.id.nav_projects) {
                 navigateToProjects();
                 return true;
             } else if (id == R.id.nav_stats) {
+                // ✅ StatsActivity đã tồn tại trong project
                 startActivity(new Intent(this, StatsActivity.class));
                 return true;
-            } else if (id == R.id.nav_profile) return true;
+            } else if (id == R.id.nav_profile) {
+                return true;
+            }
             return false;
         });
     }
@@ -112,17 +110,14 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // ✅ Cập nhật badge mỗi lần quay về dashboard
         updateNotificationBadge();
     }
 
-    // ✅ Đếm thông báo chưa đọc và hiển thị badge
     private void updateNotificationBadge() {
         new Thread(() -> {
             List<Task> tasks = taskDao.getAllTasksByUser(currentUserId);
             List<DeadlineNotification> notifications = NotificationHelper.generateNotifications(tasks);
             int count = notifications.size();
-
             runOnUiThread(() -> {
                 if (count > 0) {
                     tvNotifBadge.setVisibility(View.VISIBLE);

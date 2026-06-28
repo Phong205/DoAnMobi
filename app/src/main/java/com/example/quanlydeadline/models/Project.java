@@ -3,20 +3,13 @@ package com.example.quanlydeadline.models;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-/**
- * Đồ án (Project) thuộc về một User.
- * Mỗi đồ án có thể chứa nhiều Task (deadline / công việc con).
- */
-@Entity(
-        tableName = "projects"
-)
+@Entity(tableName = "projects")
 public class Project {
 
-    @PrimaryKey
+    // ✅ autoGenerate = true để Room tự tăng id khi insert
+    @PrimaryKey(autoGenerate = true)
     public int id;
 
     @ColumnInfo(name = "user_id")
