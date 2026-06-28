@@ -144,7 +144,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(GetCredentialException e) {
-                        Toast.makeText(RegisterActivity.this, "Đăng ký Google thất bại", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RegisterActivity.this, "Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
         );
