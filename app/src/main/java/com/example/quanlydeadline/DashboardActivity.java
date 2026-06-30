@@ -14,9 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlydeadline.adapters.TaskAdapter;
 import com.example.quanlydeadline.database.AppDatabase;
 import com.example.quanlydeadline.database.NotificationHelper;
+import com.example.quanlydeadline.database.NotificationSettingsDao;
 import com.example.quanlydeadline.database.SessionManager;
 import com.example.quanlydeadline.database.TaskDao;
 import com.example.quanlydeadline.models.DeadlineNotification;
+import com.example.quanlydeadline.models.NotificationSettings;
 import com.example.quanlydeadline.models.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -122,7 +124,9 @@ public class DashboardActivity extends AppCompatActivity {
     private void updateNotificationBadge() {
         new Thread(() -> {
             List<Task> tasks = taskDao.getAllTasksByUser(currentUserId);
-            List<DeadlineNotification> notifications = NotificationHelper.generateNotifications(tasks);
+            NotificationSettingsDao settingsDao = AppDatabase.getDatabase(this).notificationSettingsDao();
+            NotificationSettings settings = settingsDao.getSettings(currentUserId);
+            List<DeadlineNotification> notifications = NotificationHelper.generateNotifications(tasks, settings);
             int count = notifications.size();
             runOnUiThread(() -> {
                 if (count > 0) {

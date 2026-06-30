@@ -129,9 +129,9 @@ public class ProfileActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(v -> handleLogout());
         btnSwitchAccount.setOnClickListener(v -> handleSwitchAccount());
 
-        btnEditProfile.setOnClickListener(v -> Toast.makeText(this, "Tính năng Sửa thông tin đang phát triển", Toast.LENGTH_SHORT).show());
+        btnEditProfile.setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
         btnChangePassword.setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
-        btnNotificationSettings.setOnClickListener(v -> Toast.makeText(this, "Tính năng Cài đặt đang phát triển", Toast.LENGTH_SHORT).show());
+        btnNotificationSettings.setOnClickListener(v -> startActivity(new Intent(this, NotificationSettingsActivity.class)));
     }
 
     private void setupBottomNavigation() {
