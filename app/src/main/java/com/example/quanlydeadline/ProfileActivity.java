@@ -75,8 +75,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();
-        // ✅ Cập nhật lại số liệu mỗi khi quay về Profile
+        super.onResume();// ✅ Cập nhật lại số liệu mỗi khi quay về Profile
         loadStats();
     }
 
@@ -145,8 +144,7 @@ public class ProfileActivity extends AppCompatActivity {
             } else if (id == R.id.nav_home) {
                 startActivity(new Intent(this, DashboardActivity.class));
                 overridePendingTransition(0, 0);
-                finish();
-                return true;
+                finish();return true;
             } else if (id == R.id.nav_projects) {
                 startActivity(new Intent(this, ProjectListActivity.class));
                 overridePendingTransition(0, 0);
