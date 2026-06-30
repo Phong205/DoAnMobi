@@ -28,6 +28,8 @@ import com.example.quanlydeadline.models.Project;
 import com.example.quanlydeadline.models.ProjectWithProgress;
 import com.example.quanlydeadline.models.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     private TextView tvNotifBadge;
     private ImageView ivBell;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,12 +63,8 @@ public class DashboardActivity extends AppCompatActivity {
         ivBell = findViewById(R.id.ivBell);
         tvNotifBadge = findViewById(R.id.tvNotifBadge);
 
-        String fullName = sessionManager.getFullName();
-        if (fullName != null && !fullName.isEmpty()) {
-            txtGreeting.setText("Xin chào, " + fullName + " 👋");
-        } else {
-            txtGreeting.setText("Xin chào 👋");
-        }
+        mAuth = FirebaseAuth.getInstance();
+        loadUserGreeting();
 
         recyclerDeadlines.setLayoutManager(new LinearLayoutManager(this));
         projectCardAdapter = new ProjectCardAdapter();
@@ -121,10 +120,25 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
+    private void loadUserGreeting() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            String fullName = user.getDisplayName();
+            if (fullName == null || fullName.isEmpty()) {
+                String email = user.getEmail();
+                fullName = (email != null && email.contains("@")) ? email.substring(0, email.indexOf("@")) : "Người dùng";
+            }
+            txtGreeting.setText("Xin chào, " + fullName + " 👋");
+        } else {
+            txtGreeting.setText("Xin chào 👋");
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         updateNotificationBadge();
+        loadUserGreeting();
     }
 
     private void updateNotificationBadge() {
