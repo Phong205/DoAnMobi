@@ -27,11 +27,9 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         void onProjectDelete(Project project);
     }
 
-    // 💡 Thay đổi từ List<Project> sang List<ProjectWithProgress>
     private List<ProjectWithProgress> projects = new ArrayList<>();
     private final OnProjectActionListener listener;
 
-    // 💡 Không cần truyền TaskDao vào nữa, giúp tăng hiệu năng cuộn danh sách
     public ProjectAdapter(OnProjectActionListener listener) {
         this.listener = listener;
     }
@@ -64,7 +62,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
             holder.tvDueDate.setVisibility(View.GONE);
         }
 
-        // 💡 Lấy dữ liệu tiến độ đã được Room tính toán sẵn từ trước cực kỳ nhanh
         int total = item.totalTasks;
         int done = item.doneTasks;
         int percent = item.getProgressPercentage();
@@ -73,12 +70,10 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         holder.tvPercent.setText(percent + "%");
         holder.progressBar.setProgress(percent);
 
-        // Sự kiện click vào đồ án
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onProjectClick(project);
         });
 
-        // Nút Menu mở rộng (Sửa / Xóa)
         holder.btnArrow.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(v.getContext(), holder.btnArrow);
             popup.getMenu().add(1, 1, 1, "Sửa đồ án");

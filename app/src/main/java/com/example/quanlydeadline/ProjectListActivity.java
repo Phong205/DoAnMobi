@@ -80,7 +80,6 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
             @Override public boolean onQueryTextChange(String newText) { performSearch(newText); return true; }
         });
 
-        // ✅ Fetch Firestore 1 lần duy nhất khi mở màn hình
         syncManager.fetchAndSaveProjects(currentUserId, projectDao, null);
 
         loadProjects();
@@ -114,7 +113,6 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
     @Override
     protected void onResume() {
         super.onResume();
-        // ✅ onResume chỉ reload Room local, KHÔNG fetch Firestore
         loadProjects();
     }
 
@@ -181,7 +179,6 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                                 currentUserId, name, description,
                                 System.currentTimeMillis(), selectedDueDate
                         );
-                        // ✅ insertProject trả về id mới từ Room (autoGenerate)
                         long newId = projectDao.insertProject(newProject);
                         newProject.id = (int) newId;
                         syncManager.syncProject(newProject);
@@ -231,6 +228,8 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     taskDao.deleteTasksByProject(project.id);
                     projectDao.deleteProject(project);
+                    syncManager.deleteProject(project.id);
+                    syncManager.deleteTasksByProject(project.id);
                     Toast.makeText(this, "Đã xóa đồ án", Toast.LENGTH_SHORT).show();
                     loadProjects();
                 })

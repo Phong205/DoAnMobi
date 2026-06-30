@@ -38,7 +38,6 @@ public class NotificationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification);
 
-        // Back button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         tvUnreadCount = findViewById(R.id.tvUnreadCount);
@@ -51,10 +50,8 @@ public class NotificationActivity extends AppCompatActivity {
         recyclerUnread.setLayoutManager(new LinearLayoutManager(this));
         recyclerRead.setLayoutManager(new LinearLayoutManager(this));
 
-        // Load thông báo
         loadNotifications();
 
-        // Đánh dấu tất cả đã đọc
         tvMarkAllRead.setOnClickListener(v -> {
             for (DeadlineNotification n : allNotifications) n.isRead = true;
             renderNotifications();
@@ -69,7 +66,6 @@ public class NotificationActivity extends AppCompatActivity {
 
         new Thread(() -> {
             List<Task> tasks = taskDao.getAllTasksByUser(userId);
-            // ✅ Lấy cài đặt thật của user để áp dụng filter
             NotificationSettings settings = settingsDao.getSettings(userId);
             allNotifications = NotificationHelper.generateNotifications(tasks, settings);
             runOnUiThread(this::renderNotifications);
@@ -85,19 +81,15 @@ public class NotificationActivity extends AppCompatActivity {
             else unread.add(n);
         }
 
-        // Update counts
         tvUnreadCount.setText("CHƯA ĐỌC (" + unread.size() + ")");
         tvReadCount.setText("ĐÃ ĐỌC (" + read.size() + ")");
 
-        // Empty state
         tvEmptyState.setVisibility(allNotifications.isEmpty() ? View.VISIBLE : View.GONE);
 
-        // Bind adapters
         recyclerUnread.setAdapter(new NotificationAdapter(unread, false));
         recyclerRead.setAdapter(new NotificationAdapter(read, true));
     }
 
-    // ====== INNER ADAPTER ======
     class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.VH> {
         private final List<DeadlineNotification> list;
         private final boolean isRead;
@@ -122,7 +114,6 @@ public class NotificationActivity extends AppCompatActivity {
             holder.tvMessage.setText(n.message);
             holder.tvTime.setText(n.timeLabel);
 
-            // Màu icon theo type
             if (n.type == NotificationHelper.TYPE_URGENT) {
                 holder.ivIcon.setImageResource(android.R.drawable.ic_dialog_alert);
                 holder.ivIcon.setColorFilter(0xFFEF4444); // đỏ
@@ -137,10 +128,8 @@ public class NotificationActivity extends AppCompatActivity {
                 holder.itemView.setBackgroundColor(isRead ? 0xFFFFFFFF : 0xFFF0F4FF);
             }
 
-            // Dot unread
             holder.dotUnread.setVisibility(isRead ? View.GONE : View.VISIBLE);
 
-            // Click → đánh dấu đã đọc
             holder.itemView.setOnClickListener(v -> {
                 n.isRead = true;
                 renderNotifications();

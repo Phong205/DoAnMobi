@@ -48,7 +48,7 @@
         <activity
             android:name=".ProjectDetailActivity"
             android:exported="false"
-            android:label="Chic tiết đồ án" />
+            android:label="Chi tiết đồ án" />
 
         <activity
             android:name=".NotificationActivity"
@@ -65,6 +65,9 @@
             android:exported="false" />
 
         <activity android:name=".StatsActivity" />
+
+        <activity android:name=".EditProfileActivity" android:exported="false" />
+        <activity android:name=".NotificationSettingsActivity" android:exported="false" />
 
     </application>
 

@@ -47,9 +47,8 @@
 
             sessionManager = new SessionManager(this);
             mAuth = FirebaseAuth.getInstance();
-            credentialManager = CredentialManager.create(this); // ✅ Khởi tạo CredentialManager
+            credentialManager = CredentialManager.create(this);
 
-            // Nếu đã đăng nhập rồi thì skip thẳng vào Dashboard
             if (sessionManager.isLoggedIn()) {
                 goToDashboard(sessionManager.getFullName());
                 return;
@@ -63,7 +62,6 @@
 
             btnLogin.setOnClickListener(v -> loginUser());
 
-            // ✅ Sự kiện click nút Google
             btnGoogleLogin.setOnClickListener(v -> loginWithGoogle());
 
             tvGoToRegister.setOnClickListener(v ->
@@ -100,7 +98,6 @@
                     );
         }
 
-        // ================= XỬ LÝ ĐĂNG NHẬP GOOGLE =================
 
         private void loginWithGoogle() {
             GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()

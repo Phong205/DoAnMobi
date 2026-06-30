@@ -55,7 +55,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         holder.tvTitle.setText(task.title);
 
-        // Note badge
         if (task.note != null && !task.note.trim().isEmpty()) {
             holder.tvNote.setVisibility(View.VISIBLE);
             holder.tvNote.setText(task.note);
@@ -63,14 +62,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             holder.tvNote.setVisibility(View.GONE);
         }
 
-        // Due date
         if (task.dueDate > 0) {
             holder.tvDueDate.setText("📅 " + DateFormat.format("dd/MM/yyyy HH:mm", task.dueDate));
         } else {
             holder.tvDueDate.setText("📅 Chưa đặt hạn");
         }
 
-        // ✅ Priority badge
         switch (task.priority) {
             case 2: // Cao
                 holder.tvPriorityBadge.setText("Cao");
@@ -87,6 +84,22 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 holder.tvPriorityBadge.setTextColor(0xFF16A34A);
                 holder.tvPriorityBadge.setBackgroundResource(R.drawable.badge_priority_low);
                 break;
+        }
+
+        // ✅ File đính kèm
+        if (task.fileUrl != null && !task.fileUrl.isEmpty()) {
+            holder.layoutAttachedFile.setVisibility(View.VISIBLE);
+            holder.tvAttachedFile.setText(
+                    task.fileName != null && !task.fileName.isEmpty() ? task.fileName : "Xem file đính kèm"
+            );
+            holder.layoutAttachedFile.setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                intent.setData(android.net.Uri.parse(task.fileUrl));
+                v.getContext().startActivity(intent);
+            });
+        } else {
+            holder.layoutAttachedFile.setVisibility(View.GONE);
+            holder.layoutAttachedFile.setOnClickListener(null);
         }
 
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -119,8 +132,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
         TextView tvTitle, tvNote, tvDueDate;
-        TextView tvPriorityBadge; // ✅ thêm field này
+        TextView tvPriorityBadge;
         View btnEdit, btnDelete;
+        View layoutAttachedFile;
+        TextView tvAttachedFile;
 
         TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -131,6 +146,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             tvPriorityBadge = itemView.findViewById(R.id.tvPriorityBadge); // ✅ thêm dòng này
             btnEdit = itemView.findViewById(R.id.btnEditTask);
             btnDelete = itemView.findViewById(R.id.btnDeleteTask);
+            layoutAttachedFile = itemView.findViewById(R.id.layoutAttachedFile); // ✅ MỚI
+            tvAttachedFile = itemView.findViewById(R.id.tvAttachedFile);         // ✅ MỚI
         }
     }
 }

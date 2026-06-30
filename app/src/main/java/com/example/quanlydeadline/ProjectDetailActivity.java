@@ -40,6 +40,7 @@ import com.google.firebase.storage.StorageReference;
 public class ProjectDetailActivity extends AppCompatActivity implements TaskAdapter.OnTaskActionListener {
     private Uri selectedFileUri = null;
     private String selectedFileName = null;
+    private boolean fileRemoved = false; // ✅ MỚI: đánh dấu người dùng đã bấm xóa file khi sửa task
     public static final String EXTRA_PROJECT_ID = "project_id";
     public static final String EXTRA_PROJECT_NAME = "project_name";
 
@@ -69,14 +70,12 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
             return;
         }
 
-        // Header
         TextView tvTitle = findViewById(R.id.tvProjectDetailTitle);
         tvTitle.setText(projectName != null ? projectName : "Chi tiết đồ án");
 
-        // Nút back
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Views
+
         tvEmpty = findViewById(R.id.tvEmptyTasks);
         tvProgress = findViewById(R.id.tvTaskProgress);
         tvPercent = findViewById(R.id.tvProjectPercent);
@@ -84,7 +83,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
 
         RecyclerView recyclerView = findViewById(R.id.recyclerTasks);
 
-        // ✅ Đúng kiểu — ExtendedFloatingActionButton
         ExtendedFloatingActionButton fabAdd = findViewById(R.id.fabAddTask);
 
         taskDao = AppDatabase.getDatabase(this).taskDao();
@@ -96,10 +94,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
 
         fabAdd.setOnClickListener(v -> showTaskDialog(null));
 
-        // Setup tabs
         setupTabs();
 
-        // Fetch tasks từ Firestore về Room
         syncManager.fetchAndSaveTasks(projectId, taskDao, () ->
                 runOnUiThread(() -> loadTasks())
         );
@@ -172,15 +168,13 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         progressOverall.setProgress(percent);
     }
 
-// Thay toàn bộ hàm showTaskDialog() trong ProjectDetailActivity.java bằng đoạn này:
 
     private void showTaskDialog(Task existingTask) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_task, null);
 
-        // Views
         TextInputEditText edtTitle = dialogView.findViewById(R.id.edtTaskTitle);
         TextInputEditText edtNote = dialogView.findViewById(R.id.edtTaskNote);
-        RelativeLayout layoutPickDate = dialogView.findViewById(R.id.tvPickTaskDueDate); // ✅ RelativeLayout
+        RelativeLayout layoutPickDate = dialogView.findViewById(R.id.tvPickTaskDueDate);
         TextView tvDeadlineDate = dialogView.findViewById(R.id.tvDeadlineDate);
         TextView tvDeadlineTime = dialogView.findViewById(R.id.tvDeadlineTime);
         TextView tvProgressPercent = dialogView.findViewById(R.id.tvProgressPercent);
@@ -189,52 +183,54 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         TextView btnMedium = dialogView.findViewById(R.id.btnPriorityMedium);
         TextView btnHigh = dialogView.findViewById(R.id.btnPriorityHigh);
 
-        // ── THÊM VÀO SAU DÒNG: TextView btnHigh = dialogView.findViewById(R.id.btnPriorityHigh);
 
         com.google.android.material.button.MaterialButton btnAttachFile = dialogView.findViewById(R.id.btnAttachFile);
         TextView tvAttachedFileName = dialogView.findViewById(R.id.tvAttachedFileName);
         android.widget.ImageButton btnClearFile = dialogView.findViewById(R.id.btnClearFile);
 
-// Reset file mỗi lần mở dialog
         selectedFileUri = null;
         selectedFileName = null;
-        tvAttachedFileName.setText("Chưa có file nào");
-        btnClearFile.setVisibility(View.GONE);
+        fileRemoved = false;
+        boolean isEditingExisting = existingTask != null;
+        if (isEditingExisting && existingTask.fileName != null && !existingTask.fileName.isEmpty()) {
+            tvAttachedFileName.setText(existingTask.fileName);
+            tvAttachedFileName.setTextColor(android.graphics.Color.parseColor("#1E293B"));
+            btnClearFile.setVisibility(View.VISIBLE);
+        } else {
+            tvAttachedFileName.setText("Chưa có file nào");
+            btnClearFile.setVisibility(View.GONE);
+        }
 
-// Click "Chọn File" → mở file picker
         btnAttachFile.setOnClickListener(v -> {
-            // Lưu tạm 2 view này để dùng trong callback filePickerLauncher
             currentTvFileName = tvAttachedFileName;
             currentBtnClearFile = btnClearFile;
             openFilePicker();
         });
 
-// Click X → xóa file đã chọn
         btnClearFile.setOnClickListener(v -> {
             selectedFileUri = null;
             selectedFileName = null;
+            fileRemoved = true;
             tvAttachedFileName.setText("Chưa có file nào");
+            tvAttachedFileName.setTextColor(android.graphics.Color.parseColor("#94A3B8"));
             btnClearFile.setVisibility(View.GONE);
         });
 
         boolean isEdit = existingTask != null;
         selectedDueDate = isEdit ? existingTask.dueDate : 0;
-        final int[] selectedPriority = {1}; // 0=thấp, 1=trung bình, 2=cao
+        final int[] selectedPriority = {1}; //
 
         if (isEdit) {
             edtTitle.setText(existingTask.title);
             edtNote.setText(existingTask.note);
         }
 
-        // Cập nhật label deadline
         updateDeadlineLabel(tvDeadlineDate, tvDeadlineTime);
 
-        // Click chọn ngày giờ deadline
         layoutPickDate.setOnClickListener(v ->
                 showDateTimePicker(tvDeadlineDate, tvDeadlineTime)
         );
 
-        // SeekBar tiến độ
         seekBarProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
                 tvProgressPercent.setText(progress + "%");
@@ -243,7 +239,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
             @Override public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
         });
 
-        // Priority buttons
         btnLow.setOnClickListener(v -> {
             selectedPriority[0] = 0;
             btnLow.setBackgroundResource(R.drawable.priority_selected_low);
@@ -289,8 +284,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         existingTask.note = note;
                         existingTask.dueDate = selectedDueDate;
                         existingTask.priority = selectedPriority[0]; // 2705 C1eadp nh1eadt priority
-                        taskDao.updateTask(existingTask);
-                        syncManager.syncTask(existingTask);
+                        updateTaskWithFile(existingTask); // ✅ MỚI: xử lý thay/xóa/giữ nguyên file đính kèm
                         Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
                     } else {
                         Task newTask = new Task(projectId, title, note, selectedDueDate, false);
@@ -304,7 +298,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 .show();
     }
 
-// Thay hàm showDateTimePicker và updatePickDateLabel bằng:
 
     private void showDateTimePicker(TextView tvDate, TextView tvTime) {
         Calendar calendar = Calendar.getInstance();
@@ -353,6 +346,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 .setMessage("Bạn có chắc muốn xóa \"" + task.title + "\"?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     taskDao.deleteTask(task);
+                    syncManager.deleteTask(task.id);
                     loadTasks();
                 })
                 .setNegativeButton("Hủy", null)
@@ -377,7 +371,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
             }
     );
 
-    // Hàm bổ trợ lấy tên file từ Uri
     private String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
@@ -396,35 +389,69 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         return result;
     }
 
-    // 2. Hàm mở trình chọn file (Gắn vào nút "Đính kèm file" trong dialog_add_task)
     private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*"); // Cho phép chọn mọi loại file
         filePickerLauncher.launch(intent);
     }
 
-    // 3. Hàm upload file lên Firebase Storage khi nhấn "Lưu Task"
+    private void updateTaskWithFile(Task task) {
+        if (selectedFileUri != null) {
+            String storagePath = "tasks/" + System.currentTimeMillis() + "_" + selectedFileName;
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(storagePath);
+
+            storageRef.putFile(selectedFileUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            task.fileUrl = uri.toString();
+                            task.fileName = selectedFileName;
+                            task.updatedAt = System.currentTimeMillis();
+
+                            taskDao.updateTask(task);
+                            syncManager.syncTask(task);
+                            loadTasks();
+                            Toast.makeText(ProjectDetailActivity.this, "Tải lên file thành công!", Toast.LENGTH_SHORT).show();
+                        });
+                    })
+                    .addOnFailureListener(e ->
+                            Toast.makeText(ProjectDetailActivity.this, "Upload file thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                    );
+        } else if (fileRemoved) {
+            task.fileUrl = null;
+            task.fileName = null;
+            task.updatedAt = System.currentTimeMillis();
+            taskDao.updateTask(task);
+            syncManager.syncTask(task);
+            loadTasks();
+        } else {
+            task.updatedAt = System.currentTimeMillis();
+            taskDao.updateTask(task);
+            syncManager.syncTask(task);
+            loadTasks();
+        }
+    }
+
     private void uploadFileAndSaveTask(Task task) {
         if (selectedFileUri == null) {
             // Nếu không chọn file, lưu task bình thường
-            taskDao.insertTask(task);
+            long newId = taskDao.insertTask(task);
+            task.id = (int) newId;
             syncManager.syncTask(task);
             loadTasks();
             return;
         }
 
-        // Tạo đường dẫn lưu trên Firebase Storage: /tasks/timestamp_tenfile.ext
         String storagePath = "tasks/" + System.currentTimeMillis() + "_" + selectedFileName;
         StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(storagePath);
 
-        // Bắt đầu upload file
         storageRef.putFile(selectedFileUri)
                 .addOnSuccessListener(taskSnapshot -> {
                     storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         task.fileUrl = uri.toString();
                         task.fileName = selectedFileName;
 
-                        taskDao.insertTask(task);
+                        long newId = taskDao.insertTask(task);
+                        task.id = (int) newId;
                         syncManager.syncTask(task);
 
                         loadTasks(); // Reset lại danh sách hiển thị trên màn hình

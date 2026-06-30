@@ -12,6 +12,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -88,13 +90,23 @@ public class RegisterActivity extends AppCompatActivity {
         //Gọi Firebase tạo tài khoản
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    Toast.makeText(this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
+                    FirebaseUser firebaseUser = authResult.getUser();
 
-                    // Chuyển thẳng vào màn chính sau khi đăng ký xong
-                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
+                    if (firebaseUser != null) {
+                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(fullName)
+                                .build();
+
+                        firebaseUser.updateProfile(profileUpdate)
+                                .addOnCompleteListener(task -> {
+                                    Toast.makeText(this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
+
+                                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                });
+                    }
                 })
                 .addOnFailureListener(e -> {
                     String errorMsg = "Đăng ký thất bại: " + e.getMessage();

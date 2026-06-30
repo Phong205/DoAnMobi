@@ -40,14 +40,18 @@ public interface TaskDao {
     @Query("DELETE FROM tasks WHERE project_id = :projectId")
     void deleteTasksByProject(int projectId);
 
-    // Tất cả
     @Query("SELECT t.* FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.user_id = :userId ORDER BY t.due_date ASC")
     List<Task> getAllTasksByUser(int userId);
 
-    // Sắp hết hạn
     @Query("SELECT t.* FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.user_id = :userId AND t.is_done = 0 AND t.due_date BETWEEN :now AND :in7days ORDER BY t.due_date ASC")
     List<Task> getUpcomingTasks(int userId, long now, long in7days);
 
     @Query("SELECT t.* FROM tasks t INNER JOIN projects p ON t.project_id = p.id WHERE p.user_id = :userId AND t.is_done = 1 ORDER BY t.due_date ASC")
     List<Task> getDoneTasks(int userId);
+
+    @Query("UPDATE tasks SET updated_at = :updatedAt WHERE id = :taskId")
+    void touchUpdatedAt(int taskId, long updatedAt);
+
+    @Query("SELECT MAX(priority) FROM tasks WHERE project_id = :projectId AND is_done = 0")
+    int getMaxPriorityByProject(int projectId);
 }

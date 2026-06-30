@@ -68,6 +68,40 @@
             android:maxLines="2"
             android:ellipsize="end" />
 
+        <!-- HÀNG 3.5: FILE ĐÍNH KÈM (chỉ hiện khi task có file) -->
+        <LinearLayout
+            android:id="@+id/layoutAttachedFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/badge_tag"
+            android:padding="8dp"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@android:drawable/ic_menu_save"
+                app:tint="#2962FF" />
+
+            <TextView
+                android:id="@+id/tvAttachedFile"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:textColor="#2962FF"
+                android:textSize="12sp"
+                android:ellipsize="middle"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
         <!-- HÀNG 3: NGÀY HẠN -->
         <LinearLayout
             android:layout_width="match_parent"

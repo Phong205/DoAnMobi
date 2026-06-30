@@ -15,14 +15,15 @@ public class FirebaseSyncManager {
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    // ✅ Sync Project lên Firebase (đã thêm createdAt)
+
     public void syncProject(Project project) {
         Map<String, Object> data = new HashMap<>();
         data.put("name", project.name);
         data.put("description", project.description);
         data.put("userId", project.userId);
         data.put("dueDate", project.dueDate);
-        data.put("createdAt", project.createdAt); // ✅ thêm field này
+        data.put("createdAt", project.createdAt);
+        data.put("updatedAt", project.updatedAt); // ✅ MỚI
 
         db.collection("projects")
                 .document(String.valueOf(project.id))
@@ -33,25 +34,6 @@ public class FirebaseSyncManager {
                         Log.e("Firebase", "Sync failed", e));
     }
 
-    // ✅ Sync Task lên Firebase (đã thêm projectId đầy đủ)
-    public void syncTask(Task task) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("title", task.title);
-        data.put("projectId", task.projectId);
-        data.put("dueDate", task.dueDate);
-        data.put("isDone", task.isDone);
-        data.put("note", task.note);
-
-        db.collection("tasks")
-                .document(String.valueOf(task.id))
-                .set(data)
-                .addOnSuccessListener(unused ->
-                        Log.d("Firebase", "Task synced: " + task.title))
-                .addOnFailureListener(e ->
-                        Log.e("Firebase", "Task sync failed", e));
-    }
-
-    // ✅ Fetch projects từ Firestore về Room khi mở app
     public void fetchAndSaveProjects(int userId, ProjectDao projectDao, Runnable onComplete) {
         db.collection("projects")
                 .whereEqualTo("userId", userId)
@@ -63,8 +45,10 @@ public class FirebaseSyncManager {
                                 int docId = Integer.parseInt(doc.getId());
                                 Project existing = projectDao.getProjectById(docId);
 
+                                long remoteUpdatedAt = doc.getLong("updatedAt") != null
+                                        ? doc.getLong("updatedAt") : 0;
+
                                 if (existing == null) {
-                                    // ✅ Chưa có → insert
                                     Project project = new Project(
                                             userId,
                                             doc.getString("name") != null ? doc.getString("name") : "",
@@ -73,14 +57,17 @@ public class FirebaseSyncManager {
                                             doc.getLong("dueDate") != null ? doc.getLong("dueDate") : 0
                                     );
                                     project.id = docId;
+                                    project.updatedAt = remoteUpdatedAt;
                                     projectDao.insertProject(project);
-                                } else {
-                                    // ✅ Đã có → update
+
+                                } else if (remoteUpdatedAt > existing.updatedAt) {
                                     existing.name = doc.getString("name") != null ? doc.getString("name") : existing.name;
                                     existing.description = doc.getString("description") != null ? doc.getString("description") : existing.description;
                                     existing.dueDate = doc.getLong("dueDate") != null ? doc.getLong("dueDate") : existing.dueDate;
+                                    existing.updatedAt = remoteUpdatedAt;
                                     projectDao.updateProject(existing);
                                 }
+
                             } catch (NumberFormatException e) {
                                 Log.e("Firebase", "Invalid doc ID", e);
                             }
@@ -91,7 +78,28 @@ public class FirebaseSyncManager {
                 .addOnFailureListener(e -> Log.e("Firebase", "Fetch failed", e));
     }
 
-    // ✅ Fetch tasks từ Firestore về Room
+
+    public void syncTask(Task task) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("title", task.title);
+        data.put("projectId", task.projectId);
+        data.put("dueDate", task.dueDate);
+        data.put("isDone", task.isDone);
+        data.put("note", task.note);
+        data.put("priority", task.priority);
+        data.put("updatedAt", task.updatedAt); // ✅ MỚI
+        data.put("fileUrl", task.fileUrl);   // ✅ MỚI: đồng bộ file đính kèm
+        data.put("fileName", task.fileName); // ✅ MỚI
+
+        db.collection("tasks")
+                .document(String.valueOf(task.id))
+                .set(data)
+                .addOnSuccessListener(unused ->
+                        Log.d("Firebase", "Task synced: " + task.title))
+                .addOnFailureListener(e ->
+                        Log.e("Firebase", "Task sync failed", e));
+    }
+
     public void fetchAndSaveTasks(int projectId, TaskDao taskDao, Runnable onComplete) {
         db.collection("tasks")
                 .whereEqualTo("projectId", projectId)
@@ -103,6 +111,9 @@ public class FirebaseSyncManager {
                                 int docId = Integer.parseInt(doc.getId());
                                 Task existing = taskDao.getTaskById(docId);
 
+                                long remoteUpdatedAt = doc.getLong("updatedAt") != null
+                                        ? doc.getLong("updatedAt") : 0;
+
                                 if (existing == null) {
                                     Task task = new Task(
                                             projectId,
@@ -112,9 +123,31 @@ public class FirebaseSyncManager {
                                             Boolean.TRUE.equals(doc.getBoolean("isDone"))
                                     );
                                     task.id = docId;
+                                    task.updatedAt = remoteUpdatedAt;
+                                    if (doc.getLong("priority") != null) {
+                                        task.priority = doc.getLong("priority").intValue();
+                                    }
+                                    task.fileUrl = doc.getString("fileUrl");   // ✅ MỚI
+                                    task.fileName = doc.getString("fileName"); // ✅ MỚI
                                     taskDao.insertTask(task);
                                     Log.d("Firebase", "Fetched task: " + task.title);
+
+                                } else if (remoteUpdatedAt > existing.updatedAt) {
+                                    // ✅ Chỉ ghi đè khi server mới hơn
+                                    existing.title = doc.getString("title") != null ? doc.getString("title") : existing.title;
+                                    existing.note = doc.getString("note") != null ? doc.getString("note") : existing.note;
+                                    existing.dueDate = doc.getLong("dueDate") != null ? doc.getLong("dueDate") : existing.dueDate;
+                                    existing.isDone = Boolean.TRUE.equals(doc.getBoolean("isDone"));
+                                    if (doc.getLong("priority") != null) {
+                                        existing.priority = doc.getLong("priority").intValue();
+                                    }
+                                    existing.fileUrl = doc.getString("fileUrl");   // ✅ MỚI
+                                    existing.fileName = doc.getString("fileName"); // ✅ MỚI
+                                    existing.updatedAt = remoteUpdatedAt;
+                                    taskDao.updateTask(existing);
                                 }
+                                // else: local mới hơn -> giữ nguyên, không ghi đè.
+
                             } catch (NumberFormatException e) {
                                 Log.e("Firebase", "Invalid task doc ID", e);
                             }
@@ -130,4 +163,38 @@ public class FirebaseSyncManager {
     public interface OnProjectsFetched {
         void onFetched(QuerySnapshot snapshot);
     }
+
+    public void deleteProject(int projectId) {
+        db.collection("projects")
+                .document(String.valueOf(projectId))
+                .delete()
+                .addOnSuccessListener(unused -> Log.d("Firebase", "Project deleted: " + projectId))
+                .addOnFailureListener(e -> Log.e("Firebase", "Delete project failed", e));
+    }
+
+    public void deleteTasksByProject(int projectId) {
+        db.collection("tasks")
+                .whereEqualTo("projectId", projectId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        doc.getReference().delete()
+                                .addOnSuccessListener(unused ->
+                                        Log.d("Firebase", "Orphan task deleted: " + doc.getId()))
+                                .addOnFailureListener(e ->
+                                        Log.e("Firebase", "Delete orphan task failed", e));
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Log.e("Firebase", "Fetch tasks to delete failed", e));
+    }
+
+    public void deleteTask(int taskId) {
+        db.collection("tasks")
+                .document(String.valueOf(taskId))
+                .delete()
+                .addOnSuccessListener(unused -> Log.d("Firebase", "Task deleted: " + taskId))
+                .addOnFailureListener(e -> Log.e("Firebase", "Delete task failed", e));
+    }
+
 }

@@ -12,18 +12,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlydeadline.adapters.StatsAdapter;
+import com.example.quanlydeadline.database.AppDatabase;
+import com.example.quanlydeadline.database.ProjectDao;
 import com.example.quanlydeadline.database.SessionManager;
+import com.example.quanlydeadline.database.TaskDao;
+import com.example.quanlydeadline.models.ProjectWithProgress;
+import com.example.quanlydeadline.models.Task;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class StatsActivity extends AppCompatActivity {
 
@@ -33,7 +35,9 @@ public class StatsActivity extends AppCompatActivity {
     private ProgressBar progressCompletion;
     private PieChart pieChart;
     private StatsAdapter statsAdapter;
-    private FirebaseFirestore db;
+
+    private TaskDao taskDao;
+    private ProjectDao projectDao;
     private int currentUserId;
 
     @Override
@@ -41,7 +45,8 @@ public class StatsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stats);
 
-        db = FirebaseFirestore.getInstance();
+        taskDao = AppDatabase.getDatabase(this).taskDao();
+        projectDao = AppDatabase.getDatabase(this).projectDao();
         currentUserId = new SessionManager(this).getUserId();
 
         tvTotalProjects    = findViewById(R.id.tvTotalProjects);
@@ -62,7 +67,7 @@ public class StatsActivity extends AppCompatActivity {
         statsAdapter = new StatsAdapter();
         recyclerStats.setAdapter(statsAdapter);
 
-        loadStatsFromFirebase();
+        loadStatsFromRoom();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setSelectedItemId(R.id.nav_stats);
@@ -90,79 +95,44 @@ public class StatsActivity extends AppCompatActivity {
         });
     }
 
-    private void loadStatsFromFirebase() {
-        long now = System.currentTimeMillis();
-        long in3days = now + (3L * 24 * 60 * 60 * 1000);
+    private void loadStatsFromRoom() {
+        new Thread(() -> {
+            long now = System.currentTimeMillis();
+            long in3days = now + (3L * 24 * 60 * 60 * 1000);
 
-        db.collection("projects")
-                .whereEqualTo("userId", currentUserId)
-                .get()
-                .addOnSuccessListener(projectSnap -> {
-                    int totalProjects = projectSnap.size();
-                    tvTotalProjects.setText(String.valueOf(totalProjects));
+            List<ProjectWithProgress> projects = projectDao.getProjectsWithProgress(currentUserId);
+            List<Task> allTasks = taskDao.getAllTasksByUser(currentUserId);
 
-                    if (totalProjects == 0) {
-                        updateUI(0, 0, 0, 0, 0, 0, new ArrayList<>());
-                        return;
-                    }
+            int totalProjects = projects.size();
+            int total = allTasks.size();
+            int done = 0, due = 0, overdue = 0, inProgress = 0, todo = 0;
 
-                    List<StatsAdapter.ProjectStat> statList = new ArrayList<>();
-                    AtomicInteger processed      = new AtomicInteger(0);
-                    AtomicInteger totalTasks     = new AtomicInteger(0);
-                    AtomicInteger dueTasks       = new AtomicInteger(0);
-                    AtomicInteger overdueTasks   = new AtomicInteger(0);
-                    AtomicInteger doneTasks      = new AtomicInteger(0);
-                    AtomicInteger inProgressTask = new AtomicInteger(0);
+            for (Task t : allTasks) {
+                if (t.isDone) {
+                    done++;
+                } else if (t.dueDate > 0) {
+                    if (t.dueDate < now) overdue++;
+                    else if (t.dueDate <= in3days) due++;
+                    else inProgress++;
+                } else {
+                    todo++;
+                }
+            }
 
-                    for (QueryDocumentSnapshot projectDoc : projectSnap) {
-                        String projectId   = projectDoc.getId();
-                        String projectName = projectDoc.getString("name");
+            List<StatsAdapter.ProjectStat> statList = new ArrayList<>();
+            for (ProjectWithProgress p : projects) {
+                statList.add(new StatsAdapter.ProjectStat(
+                        p.project.name, p.totalTasks, p.doneTasks));
+            }
 
-                        db.collection("tasks")
-                                .whereEqualTo("projectId", Integer.parseInt(projectId))
-                                .get()
-                                .addOnSuccessListener(taskSnap -> {
-                                    int total = taskSnap.size();
-                                    int done = 0, due = 0, overdue = 0, inProgress = 0;
+            int finalTotal = total, finalDone = done, finalDue = due,
+                    finalOverdue = overdue, finalInProgress = inProgress, finalTodo = todo;
 
-                                    for (QueryDocumentSnapshot taskDoc : taskSnap) {
-                                        Boolean isDone = taskDoc.getBoolean("isDone");
-                                        Long dueDate   = taskDoc.getLong("dueDate");
-
-                                        if (Boolean.TRUE.equals(isDone)) {
-                                            done++;
-                                        } else if (dueDate != null) {
-                                            if (dueDate < now) overdue++;
-                                            else if (dueDate <= in3days) due++;
-                                            else inProgress++;
-                                        } else {
-                                            inProgress++;
-                                        }
-                                    }
-
-                                    totalTasks.addAndGet(total);
-                                    dueTasks.addAndGet(due);
-                                    overdueTasks.addAndGet(overdue);
-                                    doneTasks.addAndGet(done);
-                                    inProgressTask.addAndGet(inProgress);
-
-                                    statList.add(new StatsAdapter.ProjectStat(
-                                            projectName != null ? projectName : "Không tên",
-                                            total, done));
-
-                                    if (processed.incrementAndGet() == totalProjects) {
-                                        int t  = totalTasks.get();
-                                        int du = dueTasks.get();
-                                        int ov = overdueTasks.get();
-                                        int dn = doneTasks.get();
-                                        int ip = inProgressTask.get();
-                                        int todo = t - du - ov - dn - ip;
-
-                                        runOnUiThread(() -> updateUI(t, todo, ip, du, ov, dn, statList));
-                                    }
-                                });
-                    }
-                });
+            runOnUiThread(() -> {
+                tvTotalProjects.setText(String.valueOf(totalProjects));
+                updateUI(finalTotal, finalTodo, finalInProgress, finalDue, finalOverdue, finalDone, statList);
+            });
+        }).start();
     }
 
     private void updateUI(int total, int todo, int inProgress, int due, int overdue, int done,
@@ -173,14 +143,12 @@ public class StatsActivity extends AppCompatActivity {
         tvDoneCount.setText(String.valueOf(done));
         tvInProgressCount.setText(String.valueOf(inProgress));
 
-        // Tỉ lệ hoàn thành
         int pct = total == 0 ? 0 : (int)(done * 100.0 / total);
         tvCompletionPct.setText(pct + "%");
         tvCompletionCircle.setText(pct + "%");
         tvCompletionDetail.setText(done + " / " + total + " tasks đã hoàn thành");
         progressCompletion.setProgress(pct);
 
-        // Legend
         setLegend(R.id.legendTodo,       "Todo",       todo,     "#9CA3AF");
         setLegend(R.id.legendInProgress, "In Progress", inProgress, "#3B82F6");
         setLegend(R.id.legendDue,        "Sắp hết hạn", due,     "#F59E0B");
@@ -188,7 +156,6 @@ public class StatsActivity extends AppCompatActivity {
         setLegend(R.id.legendDone,       "Hoàn thành", done,     "#22C55E");
         tvTotalLabel.setText("Tổng: " + total + " tasks");
 
-        // Pie chart
         setupPieChart(todo, inProgress, due, overdue, done);
 
         statsAdapter.setStats(statList);
@@ -245,6 +212,6 @@ public class StatsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadStatsFromFirebase();
+        loadStatsFromRoom();
     }
 }

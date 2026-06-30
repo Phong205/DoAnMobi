@@ -100,7 +100,6 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         getSwitch(row1Day).setChecked(settings.remind1Day);
         getSwitch(rowOverdue).setChecked(settings.remindOverdue);
 
-        // Khi tắt thông báo tổng → disable hết các dòng con cho rõ ràng
         setSubRowsEnabled(settings.enableAll);
     }
 

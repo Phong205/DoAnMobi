@@ -18,12 +18,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Màn Chỉnh sửa thông tin — lưu lên Firebase.
- * - fullName: lưu vào FirebaseAuth profile (displayName)
- * - phone, birthday: lưu vào Firestore collection "user_profiles" vì
- *   FirebaseAuth profile không có field cho 2 thông tin này.
- */
+
 public class EditProfileActivity extends AppCompatActivity {
 
     private ShapeableImageView imgAvatarEdit;
@@ -70,7 +65,6 @@ public class EditProfileActivity extends AppCompatActivity {
         edtFullName.setText(user.getDisplayName());
         edtEmail.setText(user.getEmail());
 
-        // ✅ Lấy phone + birthday từ Firestore (Auth không lưu được 2 field này)
         firestore.collection("user_profiles")
                 .document(user.getUid())
                 .get()
@@ -128,14 +122,12 @@ public class EditProfileActivity extends AppCompatActivity {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
 
-        // ✅ 1. Cập nhật displayName trên FirebaseAuth
         UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                 .setDisplayName(fullName)
                 .build();
 
         user.updateProfile(profileUpdate).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // ✅ 2. Lưu phone + birthday vào Firestore
                 Map<String, Object> data = new HashMap<>();
                 data.put("fullName", fullName);
                 data.put("phone", phone);

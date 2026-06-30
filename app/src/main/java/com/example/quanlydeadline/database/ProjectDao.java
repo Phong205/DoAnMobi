@@ -34,6 +34,7 @@ public interface ProjectDao {
 
     @Query("DELETE FROM projects WHERE id = :projectId")
     void deleteProjectById(int projectId);
+
     @Query("DELETE FROM projects WHERE user_id = :userId")
     void deleteAllByUser(int userId);
 
@@ -56,4 +57,7 @@ public interface ProjectDao {
             "GROUP BY p.id " +
             "ORDER BY p.due_date ASC")
     List<ProjectWithProgress> searchProjectsWithProgress(int userId, String searchQuery);
+
+    @Query("UPDATE projects SET updated_at = :updatedAt WHERE id = :projectId")
+    void touchUpdatedAt(int projectId, long updatedAt);
 }

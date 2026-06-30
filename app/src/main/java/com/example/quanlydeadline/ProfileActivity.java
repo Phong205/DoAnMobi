@@ -23,6 +23,7 @@ import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+
 public class ProfileActivity extends AppCompatActivity {
 
     private ShapeableImageView imgAvatar;
@@ -75,7 +76,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();// ✅ Cập nhật lại số liệu mỗi khi quay về Profile
+        super.onResume();
         loadStats();
     }
 
@@ -107,7 +108,6 @@ public class ProfileActivity extends AppCompatActivity {
             }
             tvFullName.setText(name);
 
-            // ✅ Lấy số liệu thật từ Room thay vì set cứng
             loadStats();
         }
     }
@@ -187,15 +187,12 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void performCleanLogout() {
-        // Đăng xuất khỏi server Firebase
         mAuth.signOut();
 
-        // Xóa ID người dùng lưu trong SharedPreferences dưới máy
         if (sessionManager != null) {
             sessionManager.clearSession();
         }
 
-        // Chỉ đích danh LoginActivity là điểm đến, cấm đi lạc
         Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
