@@ -13,7 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.quanlydeadline.database.AppDatabase;
+import com.example.quanlydeadline.database.ProjectDao;
 import com.example.quanlydeadline.database.SessionManager;
+import com.example.quanlydeadline.database.TaskDao;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -30,6 +33,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private SessionManager sessionManager;
+    private ProjectDao projectDao;
+    private TaskDao taskDao;
     // Launcher Camera
     private final ActivityResultLauncher<Void> takePictureLauncher = registerForActivityResult(
             new ActivityResultContracts.TakePicturePreview(),
@@ -59,11 +64,20 @@ public class ProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         sessionManager = new SessionManager(this); // Khởi tạo Session
+        projectDao = AppDatabase.getDatabase(this).projectDao();
+        taskDao = AppDatabase.getDatabase(this).taskDao();
 
         initViews();
         loadUserData();
         setupEvents();
         setupBottomNavigation();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // ✅ Cập nhật lại số liệu mỗi khi quay về Profile
+        loadStats();
     }
 
     private void initViews() {
@@ -94,9 +108,21 @@ public class ProfileActivity extends AppCompatActivity {
             }
             tvFullName.setText(name);
 
-            tvProjectCount.setText("12");
-            tvDeadlineDoneCount.setText("5");
+            // ✅ Lấy số liệu thật từ Room thay vì set cứng
+            loadStats();
         }
+    }
+
+    private void loadStats() {
+        int userId = sessionManager.getUserId();
+
+        // Tổng số đồ án của user
+        int totalProjects = projectDao.getProjectsByUser(userId).size();
+        tvProjectCount.setText(String.valueOf(totalProjects));
+
+        // Tổng số deadline (task) đã hoàn thành của user
+        int totalDone = taskDao.getDoneTasks(userId).size();
+        tvDeadlineDoneCount.setText(String.valueOf(totalDone));
     }
 
     private void setupEvents() {
@@ -104,9 +130,9 @@ public class ProfileActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(v -> handleLogout());
         btnSwitchAccount.setOnClickListener(v -> handleSwitchAccount());
 
-        btnEditProfile.setOnClickListener(v -> Toast.makeText(this, "Tính năng Sửa thông tin đang phát triển", Toast.LENGTH_SHORT).show());
+        btnEditProfile.setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
         btnChangePassword.setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
-        btnNotificationSettings.setOnClickListener(v -> Toast.makeText(this, "Tính năng Cài đặt đang phát triển", Toast.LENGTH_SHORT).show());
+        btnNotificationSettings.setOnClickListener(v -> startActivity(new Intent(this, NotificationSettingsActivity.class)));
     }
 
     private void setupBottomNavigation() {

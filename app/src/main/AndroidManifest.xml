@@ -48,7 +48,7 @@
         <activity
             android:name=".ProjectDetailActivity"
             android:exported="false"
-            android:label="Chi tiết đồ án" />
+            android:label="Chic tiết đồ án" />
 
         <activity
             android:name=".NotificationActivity"
