@@ -41,6 +41,9 @@ public class FirebaseSyncManager {
         data.put("dueDate", task.dueDate);
         data.put("isDone", task.isDone);
         data.put("note", task.note);
+        data.put("priority", task.priority);
+        data.put("fileName", task.fileName);
+        data.put("fileUrl", task.fileUrl);
 
         db.collection("tasks")
                 .document(String.valueOf(task.id))
@@ -111,9 +114,32 @@ public class FirebaseSyncManager {
                                             doc.getLong("dueDate") != null ? doc.getLong("dueDate") : 0,
                                             Boolean.TRUE.equals(doc.getBoolean("isDone"))
                                     );
+                                    task.priority = doc.getLong("priority") != null
+                                            ? doc.getLong("priority").intValue()
+                                            : 1;
+
+                                    task.fileName = doc.getString("fileName");
+                                    task.fileUrl = doc.getString("fileUrl");
                                     task.id = docId;
                                     taskDao.insertTask(task);
                                     Log.d("Firebase", "Fetched task: " + task.title);
+                                } else {
+                                    existing.title = doc.getString("title");
+                                    existing.note = doc.getString("note");
+                                    existing.dueDate = doc.getLong("dueDate") != null
+                                            ? doc.getLong("dueDate")
+                                            : 0;
+
+                                    existing.isDone = Boolean.TRUE.equals(doc.getBoolean("isDone"));
+
+                                    existing.priority = doc.getLong("priority") != null
+                                            ? doc.getLong("priority").intValue()
+                                            : 1;
+
+                                    existing.fileName = doc.getString("fileName");
+                                    existing.fileUrl = doc.getString("fileUrl");
+
+                                    taskDao.updateTask(existing);
                                 }
                             } catch (NumberFormatException e) {
                                 Log.e("Firebase", "Invalid task doc ID", e);

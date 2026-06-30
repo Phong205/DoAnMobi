@@ -8,6 +8,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.quanlydeadline.database.AppDatabase;
+import com.example.quanlydeadline.database.SessionManager;
+import com.example.quanlydeadline.models.User;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -90,21 +93,30 @@ public class RegisterActivity extends AppCompatActivity {
                 .addOnSuccessListener(authResult -> {
                     Toast.makeText(this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
 
-                    // Chuyển thẳng vào màn chính sau khi đăng ký xong
+                    // THÊM ĐOẠN NÀY: lưu session + user vào Room
+                    com.google.firebase.auth.FirebaseUser firebaseUser = authResult.getUser();
+                    if (firebaseUser != null) {
+                        int userId = Math.abs(firebaseUser.getUid().hashCode());
+                        String name = fullName; // lấy từ edtFullName ở trên
+
+                        // Lưu session
+                        SessionManager sessionManager = new SessionManager(this);
+                        sessionManager.saveSession(userId, name);
+
+                        // Lưu user vào Room để FOREIGN KEY không bị lỗi
+                        AppDatabase db = AppDatabase.getDatabase(this);
+                        User newUser = new  User(name, firebaseUser.getEmail(), "");
+                        newUser.id = userId;
+                        db.userDao().insertUser(newUser);
+                    }
+                    // KẾT THÚC THÊM
+
                     Intent intent = new Intent(RegisterActivity.this, DashboardActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
-                })
-                .addOnFailureListener(e -> {
-                    String errorMsg = "Đăng ký thất bại: " + e.getMessage();
-                    if (e.getMessage() != null && e.getMessage().contains("email address is already in use")) {
-                        errorMsg = "Email này đã được sử dụng cho một tài khoản khác!";
-                    }
-                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
                 });
     }
-
     // Hàm phụ trợ Regex
     private boolean isValidPassword(String password) {
         String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";

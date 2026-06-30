@@ -9,7 +9,15 @@ import com.example.quanlydeadline.models.Project;
 import com.example.quanlydeadline.models.Task;
 import com.example.quanlydeadline.models.User;
 
-@Database(entities = {User.class, Project.class, Task.class}, version = 4, exportSchema = false)
+@Database(
+        entities = {
+                User.class,
+                Project.class,
+                Task.class,
+        },
+        version = 5,
+        exportSchema = false
+)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UserDao userDao();

@@ -41,11 +41,12 @@ public class Task {
     @ColumnInfo(name = "priority")
     public int priority;
 
-    @ColumnInfo(name = "file_url")
-    public String fileUrl;
-
+    // ✅ Thêm field fileName và fileUrl
     @ColumnInfo(name = "file_name")
     public String fileName;
+
+    @ColumnInfo(name = "file_url")
+    public String fileUrl;
 
     public Task(int projectId, @NonNull String title, String note, long dueDate, boolean isDone) {
         this.projectId = projectId;
@@ -53,8 +54,8 @@ public class Task {
         this.note = note;
         this.dueDate = dueDate;
         this.isDone = isDone;
-        this.priority = 1; // mặc định trung bình
-        this.fileUrl = null;
+        this.priority = 1;// mặc định trung bình
         this.fileName = null;
+        this.fileUrl = null;
     }
-}
+    }
