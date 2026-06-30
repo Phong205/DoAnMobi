@@ -21,10 +21,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     public interface OnTaskActionListener {
         void onTaskCheckedChange(Task task, boolean isChecked);
-        void onTaskEdit(Task task);
-        void onTaskDelete(Task task);
-    }
 
+        void onTaskEdit(Task task);
+
+        void onTaskDelete(Task task);
+
+    }
+    private android.content.Context context;
     private List<Task> tasks = new ArrayList<>();
     private final OnTaskActionListener listener;
 
@@ -40,6 +43,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        context = parent.getContext();
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_task, parent, false);
         return new TaskViewHolder(view);
@@ -54,7 +58,44 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         applyDoneStyle(holder, task.isDone);
 
         holder.tvTitle.setText(task.title);
+        if (holder.layoutFileAttach != null) {
+            if (task.fileName != null && !task.fileName.trim().isEmpty()) {
+                holder.layoutFileAttach.setVisibility(View.VISIBLE);
+                if (holder.tvFileName != null) {
+                    holder.tvFileName.setText("📎 " + task.fileName);
+                    holder.tvFileName.setOnClickListener(v -> {
 
+                        if (task.fileUrl == null) return;
+
+                        java.io.File file = new java.io.File(task.fileUrl);
+
+                        if (!file.exists()) {
+                            android.widget.Toast.makeText(context,
+                                    "Không tìm thấy file",
+                                    android.widget.Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                context.getPackageName() + ".provider",
+                                file
+                        );
+
+                        android.content.Intent intent =
+                                new android.content.Intent(android.content.Intent.ACTION_VIEW);
+
+                        intent.setDataAndType(uri, "*/*");
+                        intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                        context.startActivity(intent);
+
+                    });
+                }
+            } else {
+                holder.layoutFileAttach.setVisibility(View.GONE);
+            }
+        }
         // Note badge
         if (task.note != null && !task.note.trim().isEmpty()) {
             holder.tvNote.setVisibility(View.VISIBLE);
@@ -121,6 +162,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TextView tvTitle, tvNote, tvDueDate;
         TextView tvPriorityBadge; // ✅ thêm field này
         View btnEdit, btnDelete;
+        View layoutFileAttach;
+        TextView tvFileName;
 
         TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -131,6 +174,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             tvPriorityBadge = itemView.findViewById(R.id.tvPriorityBadge); // ✅ thêm dòng này
             btnEdit = itemView.findViewById(R.id.btnEditTask);
             btnDelete = itemView.findViewById(R.id.btnDeleteTask);
+            layoutFileAttach = itemView.findViewById(R.id.layoutFileAttach);
+            tvFileName = itemView.findViewById(R.id.tvFileName);
         }
     }
+
 }

@@ -36,6 +36,28 @@ public class FirebaseSyncManager {
                         Log.e("Firebase", "Sync failed", e));
     }
 
+    // ✅ Sync Task lên Firebase (đã thêm projectId đầy đủ)
+    public void syncTask(Task task) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("title", task.title);
+        data.put("projectId", task.projectId);
+        data.put("dueDate", task.dueDate);
+        data.put("isDone", task.isDone);
+        data.put("note", task.note);
+        data.put("priority", task.priority);
+        data.put("fileName", task.fileName);
+        data.put("fileUrl", task.fileUrl);
+
+        db.collection("tasks")
+                .document(String.valueOf(task.id))
+                .set(data)
+                .addOnSuccessListener(unused ->
+                        Log.d("Firebase", "Task synced: " + task.title))
+                .addOnFailureListener(e ->
+                        Log.e("Firebase", "Task sync failed", e));
+    }
+
+    // ✅ Fetch projects từ Firestore về Room khi mở app
     // ✅ Fetch projects từ Firestore về Room — CHỈ ghi đè nếu bản server mới hơn bản local
     public void fetchAndSaveProjects(int userId, ProjectDao projectDao, Runnable onComplete) {
         db.collection("projects")
@@ -132,6 +154,12 @@ public class FirebaseSyncManager {
                                             doc.getLong("dueDate") != null ? doc.getLong("dueDate") : 0,
                                             Boolean.TRUE.equals(doc.getBoolean("isDone"))
                                     );
+                                    task.priority = doc.getLong("priority") != null
+                                            ? doc.getLong("priority").intValue()
+                                            : 1;
+
+                                    task.fileName = doc.getString("fileName");
+                                    task.fileUrl = doc.getString("fileUrl");
                                     task.id = docId;
                                     task.updatedAt = remoteUpdatedAt;
                                     if (doc.getLong("priority") != null) {
@@ -139,17 +167,22 @@ public class FirebaseSyncManager {
                                     }
                                     taskDao.insertTask(task);
                                     Log.d("Firebase", "Fetched task: " + task.title);
+                                } else {
+                                    existing.title = doc.getString("title");
+                                    existing.note = doc.getString("note");
+                                    existing.dueDate = doc.getLong("dueDate") != null
+                                            ? doc.getLong("dueDate")
+                                            : 0;
 
-                                } else if (remoteUpdatedAt > existing.updatedAt) {
-                                    // ✅ Chỉ ghi đè khi server mới hơn
-                                    existing.title = doc.getString("title") != null ? doc.getString("title") : existing.title;
-                                    existing.note = doc.getString("note") != null ? doc.getString("note") : existing.note;
-                                    existing.dueDate = doc.getLong("dueDate") != null ? doc.getLong("dueDate") : existing.dueDate;
                                     existing.isDone = Boolean.TRUE.equals(doc.getBoolean("isDone"));
-                                    if (doc.getLong("priority") != null) {
-                                        existing.priority = doc.getLong("priority").intValue();
-                                    }
-                                    existing.updatedAt = remoteUpdatedAt;
+
+                                    existing.priority = doc.getLong("priority") != null
+                                            ? doc.getLong("priority").intValue()
+                                            : 1;
+
+                                    existing.fileName = doc.getString("fileName");
+                                    existing.fileUrl = doc.getString("fileUrl");
+
                                     taskDao.updateTask(existing);
                                 }
                                 // else: local mới hơn -> giữ nguyên, không ghi đè.

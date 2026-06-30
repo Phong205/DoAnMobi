@@ -40,12 +40,12 @@ public class Task {
     @ColumnInfo(name = "priority")
     public int priority; // 0=thấp, 1=trung bình, 2=cao
 
-    @ColumnInfo(name = "file_url")
-    public String fileUrl;
-
+    // ✅ Thêm field fileName và fileUrl
     @ColumnInfo(name = "file_name")
     public String fileName;
 
+    @ColumnInfo(name = "file_url")
+    public String fileUrl;
     // ✅ MỚI: thời điểm task này được sửa lần cuối (local hoặc từ server)
     @ColumnInfo(name = "updated_at")
     public long updatedAt;
@@ -56,9 +56,11 @@ public class Task {
         this.note = note;
         this.dueDate = dueDate;
         this.isDone = isDone;
-        this.priority = 1; // mặc định trung bình
-        this.fileUrl = null;
+        this.priority = 1;// mặc định trung bình
         this.fileName = null;
+        this.fileUrl = null;
+    }
+    }
         this.updatedAt = System.currentTimeMillis();
     }
 }

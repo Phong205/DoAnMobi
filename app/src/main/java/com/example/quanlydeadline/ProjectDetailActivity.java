@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,6 +27,7 @@ import com.example.quanlydeadline.database.TaskDao;
 import com.example.quanlydeadline.models.Task;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -33,9 +35,8 @@ import java.util.Locale;
 
 import android.widget.SeekBar;
 import android.widget.RelativeLayout;
+
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 public class ProjectDetailActivity extends AppCompatActivity implements TaskAdapter.OnTaskActionListener {
     private Uri selectedFileUri = null;
@@ -113,10 +114,26 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         TextView tabDone = findViewById(R.id.tabDone);
         TextView tabOverdue = findViewById(R.id.tabOverdue);
 
-        tabTodo.setOnClickListener(v -> { currentTab = "todo"; updateTabUI(tabTodo, tabInProgress, tabDone, tabOverdue); loadTasks(); });
-        tabInProgress.setOnClickListener(v -> { currentTab = "inprogress"; updateTabUI(tabInProgress, tabTodo, tabDone, tabOverdue); loadTasks(); });
-        tabDone.setOnClickListener(v -> { currentTab = "done"; updateTabUI(tabDone, tabTodo, tabInProgress, tabOverdue); loadTasks(); });
-        tabOverdue.setOnClickListener(v -> { currentTab = "overdue"; updateTabUI(tabOverdue, tabTodo, tabInProgress, tabDone); loadTasks(); });
+        tabTodo.setOnClickListener(v -> {
+            currentTab = "todo";
+            updateTabUI(tabTodo, tabInProgress, tabDone, tabOverdue);
+            loadTasks();
+        });
+        tabInProgress.setOnClickListener(v -> {
+            currentTab = "inprogress";
+            updateTabUI(tabInProgress, tabTodo, tabDone, tabOverdue);
+            loadTasks();
+        });
+        tabDone.setOnClickListener(v -> {
+            currentTab = "done";
+            updateTabUI(tabDone, tabTodo, tabInProgress, tabOverdue);
+            loadTasks();
+        });
+        tabOverdue.setOnClickListener(v -> {
+            currentTab = "overdue";
+            updateTabUI(tabOverdue, tabTodo, tabInProgress, tabDone);
+            loadTasks();
+        });
     }
 
     private void updateTabUI(TextView active, TextView... inactives) {
@@ -224,8 +241,12 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         if (isEdit) {
             edtTitle.setText(existingTask.title);
             edtNote.setText(existingTask.note);
-        }
 
+            if (existingTask.fileName != null && !existingTask.fileName.isEmpty()) {
+                tvAttachedFileName.setText(existingTask.fileName);
+                btnClearFile.setVisibility(View.VISIBLE);
+            }
+        }
         // Cập nhật label deadline
         updateDeadlineLabel(tvDeadlineDate, tvDeadlineTime);
 
@@ -236,11 +257,18 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
 
         // SeekBar tiến độ
         seekBarProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+            @Override
+            public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
                 tvProgressPercent.setText(progress + "%");
             }
-            @Override public void onStartTrackingTouch(android.widget.SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
+
+            @Override
+            public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
+            }
         });
 
         // Priority buttons
@@ -288,17 +316,71 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         existingTask.title = title;
                         existingTask.note = note;
                         existingTask.dueDate = selectedDueDate;
-                        existingTask.priority = selectedPriority[0]; // 2705 C1eadp nh1eadt priority
+                        existingTask.priority = selectedPriority[0];
+
+                        if (existingTask.fileUrl != null) {
+                            File oldFile = new File(existingTask.fileUrl);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
+                        }
+                        // Nếu có file mới đính kèm khi edit
+                        if (selectedFileUri != null) {
+                            existingTask.fileName = selectedFileName;
+                            try {
+                                java.io.File attachDir = new java.io.File(getFilesDir(), "attachments");
+                                if (!attachDir.exists()) attachDir.mkdirs();
+                                String fName = System.currentTimeMillis() + "_" + selectedFileName;
+                                java.io.File destFile = new java.io.File(attachDir, fName);
+                                java.io.InputStream in = getContentResolver().openInputStream(selectedFileUri);
+                                java.io.FileOutputStream out = new java.io.FileOutputStream(destFile);
+                                byte[] buffer = new byte[4096];
+                                int len;
+                                while ((len = in.read(buffer)) > 0) out.write(buffer, 0, len);
+                                in.close();
+                                out.close();
+                                existingTask.fileUrl = destFile.getAbsolutePath();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                         taskDao.updateTask(existingTask);
                         syncManager.syncTask(existingTask);
                         Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
+                        loadTasks();
+
                     } else {
                         Task newTask = new Task(projectId, title, note, selectedDueDate, false);
                         newTask.priority = selectedPriority[0];
-                        uploadFileAndSaveTask(newTask);  // ← tự động upload file nếu có, rồi mới lưu
-                        Toast.makeText(this, "Đã thêm", Toast.LENGTH_SHORT).show();
+
+                        // Lưu file local nếu có
+                        if (selectedFileUri != null) {
+                            try {
+                                java.io.File attachDir = new java.io.File(getFilesDir(), "attachments");
+                                if (!attachDir.exists()) attachDir.mkdirs();
+                                String fName = System.currentTimeMillis() + "_" + selectedFileName;
+                                java.io.File destFile = new java.io.File(attachDir, fName);
+                                java.io.InputStream in = getContentResolver().openInputStream(selectedFileUri);
+                                java.io.FileOutputStream out = new java.io.FileOutputStream(destFile);
+                                byte[] buffer = new byte[4096];
+                                int len;
+                                while ((len = in.read(buffer)) > 0) out.write(buffer, 0, len);
+                                in.close();
+                                out.close();
+                                newTask.fileUrl = destFile.getAbsolutePath();
+                                newTask.fileName = selectedFileName;
+                                Toast.makeText(this, "✅ Đã đính kèm: " + selectedFileName, Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Toast.makeText(this, "⚠️ Lưu file thất bại", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        long newId = taskDao.insertTask(newTask);
+                        newTask.id = (int) newId;
+                        syncManager.syncTask(newTask);
+                        Toast.makeText(this, "Đã thêm task", Toast.LENGTH_SHORT).show();
+                        loadTasks();
                     }
-                    loadTasks();
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
@@ -359,6 +441,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 .setNegativeButton("Hủy", null)
                 .show();
     }
+
     private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -415,27 +498,24 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
             return;
         }
 
-        // Tạo đường dẫn lưu trên Firebase Storage: /tasks/timestamp_tenfile.ext
-        String storagePath = "tasks/" + System.currentTimeMillis() + "_" + selectedFileName;
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(storagePath);
+        File file = new File(task.fileUrl);
 
-        // Bắt đầu upload file
-        storageRef.putFile(selectedFileUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        task.fileUrl = uri.toString();
-                        task.fileName = selectedFileName;
+        if (!file.exists()) {
+            Toast.makeText(this, "Không tìm thấy file", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                        long newId = taskDao.insertTask(task);
-                        task.id = (int) newId;
-                        syncManager.syncTask(task);
+        Uri uri = FileProvider.getUriForFile(
+                this,
+                getPackageName() + ".provider",
+                file
+        );
 
-                        loadTasks(); // Reset lại danh sách hiển thị trên màn hình
-                        Toast.makeText(ProjectDetailActivity.this, "Tải lên file thành công!", Toast.LENGTH_SHORT).show();
-                    });
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(ProjectDetailActivity.this, "Upload file thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, "*/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        startActivity(intent);
     }
+
 }

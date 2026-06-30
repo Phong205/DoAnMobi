@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
     android:layout_marginTop="10dp"
+    android:layout_marginEnd="16dp"
     android:layout_marginBottom="2dp"
+    android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="14dp"
-    app:cardElevation="2dp"
-    android:foreground="?attr/selectableItemBackground">
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,35 +22,35 @@
             android:id="@+id/layoutBadges"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/tvPriorityBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/badge_priority_low"
                 android:paddingStart="10dp"
-                android:paddingEnd="10dp"
                 android:paddingTop="4dp"
+                android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
                 android:text="Thấp"
                 android:textColor="#16A34A"
                 android:textSize="12sp"
-                android:textStyle="bold"
-                android:background="@drawable/badge_priority_low"
-                android:layout_marginEnd="6dp" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvTaskNote"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:textSize="12sp"
-                android:textColor="#6B7280"
                 android:background="@drawable/badge_tag"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:textColor="#6B7280"
+                android:textSize="12sp"
                 android:visibility="gone" />
 
         </LinearLayout>
@@ -62,19 +61,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="#111827"
+            android:ellipsize="end"
             android:maxLines="2"
-            android:ellipsize="end" />
+            android:textColor="#111827"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <!-- HÀNG 3: NGÀY HẠN -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/tvTaskDueDate"
@@ -98,8 +97,8 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_edit"
                 android:contentDescription="Sửa"
+                android:src="@android:drawable/ic_menu_edit"
                 android:tint="#94A3B8" />
 
             <ImageButton
@@ -107,12 +106,39 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_delete"
                 android:contentDescription="Xóa"
+                android:src="@android:drawable/ic_menu_delete"
                 android:tint="#EF4444" />
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/layoutFileAttach"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@android:drawable/ic_menu_agenda"
+                android:tint="#2962FF" />
+
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textColor="#2962FF"
+                android:textSize="12sp" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

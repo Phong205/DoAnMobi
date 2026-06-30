@@ -1,6 +1,7 @@
 package com.example.quanlydeadline.models;
 
 import androidx.room.Embedded;
+import androidx.room.Ignore;
 
 public class ProjectWithProgress {
     @Embedded
@@ -10,6 +11,7 @@ public class ProjectWithProgress {
     public int doneTasks;
     public ProjectWithProgress() {
     }
+    @Ignore
     public ProjectWithProgress(Project project, int totalTasks, int doneTasks) {
         this.project = project;
         this.totalTasks = totalTasks;
