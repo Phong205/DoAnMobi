@@ -231,6 +231,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     taskDao.deleteTasksByProject(project.id);
                     projectDao.deleteProject(project);
+                    syncManager.deleteProject(project.id);
                     Toast.makeText(this, "Đã xóa đồ án", Toast.LENGTH_SHORT).show();
                     loadProjects();
                 })

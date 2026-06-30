@@ -169,4 +169,21 @@ public class FirebaseSyncManager {
     public interface OnProjectsFetched {
         void onFetched(QuerySnapshot snapshot);
     }
+
+    public void deleteProject(int projectId) {
+        db.collection("projects")
+                .document(String.valueOf(projectId))
+                .delete()
+                .addOnSuccessListener(unused -> Log.d("Firebase", "Project deleted: " + projectId))
+                .addOnFailureListener(e -> Log.e("Firebase", "Delete project failed", e));
+    }
+
+    public void deleteTask(int taskId) {
+        db.collection("tasks")
+                .document(String.valueOf(taskId))
+                .delete()
+                .addOnSuccessListener(unused -> Log.d("Firebase", "Task deleted: " + taskId))
+                .addOnFailureListener(e -> Log.e("Firebase", "Delete task failed", e));
+    }
+
 }

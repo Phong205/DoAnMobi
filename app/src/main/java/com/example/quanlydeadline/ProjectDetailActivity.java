@@ -353,6 +353,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 .setMessage("Bạn có chắc muốn xóa \"" + task.title + "\"?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     taskDao.deleteTask(task);
+                    syncManager.deleteTask(task.id);
                     loadTasks();
                 })
                 .setNegativeButton("Hủy", null)
@@ -407,7 +408,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
     private void uploadFileAndSaveTask(Task task) {
         if (selectedFileUri == null) {
             // Nếu không chọn file, lưu task bình thường
-            taskDao.insertTask(task);
+            long newId = taskDao.insertTask(task);
+            task.id = (int) newId;
             syncManager.syncTask(task);
             loadTasks();
             return;
@@ -424,7 +426,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         task.fileUrl = uri.toString();
                         task.fileName = selectedFileName;
 
-                        taskDao.insertTask(task);
+                        long newId = taskDao.insertTask(task);
+                        task.id = (int) newId;
                         syncManager.syncTask(task);
 
                         loadTasks(); // Reset lại danh sách hiển thị trên màn hình
