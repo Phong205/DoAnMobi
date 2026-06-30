@@ -94,14 +94,19 @@ public class DashboardActivity extends AppCompatActivity {
             if (id == R.id.nav_home) {
                 return true;
             } else if (id == R.id.nav_projects) {
-                navigateToProjects();
+                startActivity(new Intent(this, ProjectListActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             } else if (id == R.id.nav_stats) {
-                // ✅ StatsActivity đã tồn tại trong project
                 startActivity(new Intent(this, StatsActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             }
             return false;

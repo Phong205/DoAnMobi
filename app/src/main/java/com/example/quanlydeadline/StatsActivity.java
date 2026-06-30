@@ -68,13 +68,24 @@ public class StatsActivity extends AppCompatActivity {
         bottomNav.setSelectedItemId(R.id.nav_stats);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) { finish(); return true; }
-            else if (id == R.id.nav_projects) {
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, DashboardActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
+                return true;
+            } else if (id == R.id.nav_projects) {
                 startActivity(new Intent(this, ProjectListActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
+                return true;
+            } else if (id == R.id.nav_stats) {
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             }
-            else if (id == R.id.nav_stats) return true;
-            else if (id == R.id.nav_profile) return true;
             return false;
         });
     }
