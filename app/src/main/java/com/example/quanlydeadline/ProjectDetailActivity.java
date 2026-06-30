@@ -40,7 +40,7 @@ import com.google.firebase.storage.StorageReference;
 public class ProjectDetailActivity extends AppCompatActivity implements TaskAdapter.OnTaskActionListener {
     private Uri selectedFileUri = null;
     private String selectedFileName = null;
-    private boolean fileRemoved = false; // ✅ MỚI: đánh dấu người dùng đã bấm xóa file khi sửa task
+    private boolean fileRemoved = false;
     public static final String EXTRA_PROJECT_ID = "project_id";
     public static final String EXTRA_PROJECT_NAME = "project_name";
 
@@ -53,7 +53,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
     private long selectedDueDate = 0;
     private TextView currentTvFileName = null;
     private android.widget.ImageButton currentBtnClearFile = null;
-    // Tab filter: "todo", "inprogress", "done", "overdue"
     private String currentTab = "todo";
 
     @Override
@@ -74,7 +73,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         tvTitle.setText(projectName != null ? projectName : "Chi tiết đồ án");
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
-
 
         tvEmpty = findViewById(R.id.tvEmptyTasks);
         tvProgress = findViewById(R.id.tvTaskProgress);
@@ -117,7 +115,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
 
     private void updateTabUI(TextView active, TextView... inactives) {
         active.setBackgroundResource(R.drawable.tab_selected_bg);
-        active.setTextColor(0xFFFFFFFF);
+        active.setTextColor(0xFF2962FF);
         active.setTypeface(null, android.graphics.Typeface.BOLD);
         for (TextView tab : inactives) {
             tab.setBackgroundColor(android.graphics.Color.TRANSPARENT);
@@ -172,9 +170,10 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
     private void showTaskDialog(Task existingTask) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_task, null);
 
+        // Views
         TextInputEditText edtTitle = dialogView.findViewById(R.id.edtTaskTitle);
         TextInputEditText edtNote = dialogView.findViewById(R.id.edtTaskNote);
-        RelativeLayout layoutPickDate = dialogView.findViewById(R.id.tvPickTaskDueDate);
+        RelativeLayout layoutPickDate = dialogView.findViewById(R.id.tvPickTaskDueDate); // ✅ RelativeLayout
         TextView tvDeadlineDate = dialogView.findViewById(R.id.tvDeadlineDate);
         TextView tvDeadlineTime = dialogView.findViewById(R.id.tvDeadlineTime);
         TextView tvProgressPercent = dialogView.findViewById(R.id.tvProgressPercent);
@@ -218,7 +217,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
 
         boolean isEdit = existingTask != null;
         selectedDueDate = isEdit ? existingTask.dueDate : 0;
-        final int[] selectedPriority = {1}; //
+        final int[] selectedPriority = {1};
 
         if (isEdit) {
             edtTitle.setText(existingTask.title);
@@ -283,13 +282,13 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         existingTask.title = title;
                         existingTask.note = note;
                         existingTask.dueDate = selectedDueDate;
-                        existingTask.priority = selectedPriority[0]; // 2705 C1eadp nh1eadt priority
-                        updateTaskWithFile(existingTask); // ✅ MỚI: xử lý thay/xóa/giữ nguyên file đính kèm
+                        existingTask.priority = selectedPriority[0];
+                        updateTaskWithFile(existingTask);
                         Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
                     } else {
                         Task newTask = new Task(projectId, title, note, selectedDueDate, false);
                         newTask.priority = selectedPriority[0];
-                        uploadFileAndSaveTask(newTask);  // ← tự động upload file nếu có, rồi mới lưu
+                        uploadFileAndSaveTask(newTask);
                         Toast.makeText(this, "Đã thêm", Toast.LENGTH_SHORT).show();
                     }
                     loadTasks();
@@ -433,7 +432,6 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
 
     private void uploadFileAndSaveTask(Task task) {
         if (selectedFileUri == null) {
-            // Nếu không chọn file, lưu task bình thường
             long newId = taskDao.insertTask(task);
             task.id = (int) newId;
             syncManager.syncTask(task);
@@ -454,7 +452,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         task.id = (int) newId;
                         syncManager.syncTask(task);
 
-                        loadTasks(); // Reset lại danh sách hiển thị trên màn hình
+                        loadTasks();
                         Toast.makeText(ProjectDetailActivity.this, "Tải lên file thành công!", Toast.LENGTH_SHORT).show();
                     });
                 })
