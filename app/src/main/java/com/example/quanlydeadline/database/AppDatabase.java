@@ -10,14 +10,14 @@ import com.example.quanlydeadline.models.Project;
 import com.example.quanlydeadline.models.Task;
 import com.example.quanlydeadline.models.User;
 
-// ✅ Thêm NotificationSettings.class + tăng version lên 5
-@Database(entities = {User.class, Project.class, Task.class, NotificationSettings.class}, version = 5, exportSchema = false)
+// ✅ Tăng version từ 5 -> 6 vì Project và Task thêm cột "updated_at"
+@Database(entities = {User.class, Project.class, Task.class, NotificationSettings.class}, version = 6, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UserDao userDao();
     public abstract ProjectDao projectDao();
     public abstract TaskDao taskDao();
-    public abstract NotificationSettingsDao notificationSettingsDao(); // ✅ thêm DAO mới
+    public abstract NotificationSettingsDao notificationSettingsDao();
 
     private static volatile AppDatabase INSTANCE;
 
