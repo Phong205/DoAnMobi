@@ -37,15 +37,18 @@ public class Task {
     @ColumnInfo(name = "is_done")
     public boolean isDone;
 
-    // ✅ Thêm field priority: 0=thấp, 1=trung bình, 2=cao
     @ColumnInfo(name = "priority")
-    public int priority;
+    public int priority; // 0=thấp, 1=trung bình, 2=cao
 
     @ColumnInfo(name = "file_url")
     public String fileUrl;
 
     @ColumnInfo(name = "file_name")
     public String fileName;
+
+    // ✅ MỚI: thời điểm task này được sửa lần cuối (local hoặc từ server)
+    @ColumnInfo(name = "updated_at")
+    public long updatedAt;
 
     public Task(int projectId, @NonNull String title, String note, long dueDate, boolean isDone) {
         this.projectId = projectId;
@@ -56,5 +59,6 @@ public class Task {
         this.priority = 1; // mặc định trung bình
         this.fileUrl = null;
         this.fileName = null;
+        this.updatedAt = System.currentTimeMillis();
     }
 }
