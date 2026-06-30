@@ -511,9 +511,9 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 file
         );
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "*/*");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        long newId = taskDao.insertTask(task);
+                        task.id = (int) newId;
+                        syncManager.syncTask(task);
 
         startActivity(intent);
     }
