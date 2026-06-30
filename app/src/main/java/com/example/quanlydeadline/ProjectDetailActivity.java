@@ -435,6 +435,7 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                 .setMessage("Bạn có chắc muốn xóa \"" + task.title + "\"?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     taskDao.deleteTask(task);
+                    syncManager.deleteTask(task.id);
                     loadTasks();
                 })
                 .setNegativeButton("Hủy", null)
@@ -486,10 +487,14 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         filePickerLauncher.launch(intent);
     }
 
-    public void onOpenFile(Task task) {
-
-        if (task.fileUrl == null) {
-            Toast.makeText(this, "Chưa có file", Toast.LENGTH_SHORT).show();
+    // 3. Hàm upload file lên Firebase Storage khi nhấn "Lưu Task"
+    private void uploadFileAndSaveTask(Task task) {
+        if (selectedFileUri == null) {
+            // Nếu không chọn file, lưu task bình thường
+            long newId = taskDao.insertTask(task);
+            task.id = (int) newId;
+            syncManager.syncTask(task);
+            loadTasks();
             return;
         }
 

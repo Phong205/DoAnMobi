@@ -8,7 +8,6 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "projects")
 public class Project {
 
-    // ✅ autoGenerate = true để Room tự tăng id khi insert
     @PrimaryKey(autoGenerate = true)
     public int id;
 
@@ -27,11 +26,17 @@ public class Project {
     @ColumnInfo(name = "due_date")
     public long dueDate;
 
+    // ✅ MỚI: thời điểm bản ghi này được sửa lần cuối (local hoặc từ server).
+    // Dùng để so sánh khi đồng bộ Room <-> Firestore: bản nào có updatedAt lớn hơn thì thắng.
+    @ColumnInfo(name = "updated_at")
+    public long updatedAt;
+
     public Project(int userId, @NonNull String name, String description, long createdAt, long dueDate) {
         this.userId = userId;
         this.name = name;
         this.description = description;
         this.createdAt = createdAt;
         this.dueDate = dueDate;
+        this.updatedAt = createdAt; // mặc định lúc tạo mới, updatedAt = createdAt
     }
 }

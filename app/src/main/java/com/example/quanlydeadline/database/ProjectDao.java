@@ -34,6 +34,7 @@ public interface ProjectDao {
 
     @Query("DELETE FROM projects WHERE id = :projectId")
     void deleteProjectById(int projectId);
+
     @Query("DELETE FROM projects WHERE user_id = :userId")
     void deleteAllByUser(int userId);
 
@@ -56,4 +57,9 @@ public interface ProjectDao {
             "GROUP BY p.id " +
             "ORDER BY p.due_date ASC")
     List<ProjectWithProgress> searchProjectsWithProgress(int userId, String searchQuery);
+
+    // ✅ MỚI: cập nhật riêng cột updated_at, dùng khi cần "chạm" vào bản ghi
+    // mà không phải sửa nội dung gì khác (ví dụ sau khi đồng bộ xong).
+    @Query("UPDATE projects SET updated_at = :updatedAt WHERE id = :projectId")
+    void touchUpdatedAt(int projectId, long updatedAt);
 }

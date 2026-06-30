@@ -89,10 +89,24 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
         bottomNav.setSelectedItemId(R.id.nav_projects);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) { finish(); return true; }
-            else if (id == R.id.nav_projects) { return true; }
-            else if (id == R.id.nav_stats) { startActivity(new Intent(this, StatsActivity.class)); return true; }
-            else if (id == R.id.nav_profile) { return true; }
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, DashboardActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
+                return true;
+            } else if (id == R.id.nav_projects) {
+                return true;
+            } else if (id == R.id.nav_stats) {
+                startActivity(new Intent(this, StatsActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
+                return true;
+            }
             return false;
         });
     }
@@ -222,6 +236,7 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     taskDao.deleteTasksByProject(project.id);
                     projectDao.deleteProject(project);
+                    syncManager.deleteProject(project.id);
                     Toast.makeText(this, "Đã xóa đồ án", Toast.LENGTH_SHORT).show();
                     loadProjects();
                 })

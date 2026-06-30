@@ -15,6 +15,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -57,38 +59,38 @@ public class RegisterActivity extends AppCompatActivity {
         String password = edtPassword.getText().toString();
         String confirmPassword = edtConfirmPassword.getText().toString();
 
-        // Bước 0: Xóa các thông báo lỗi cũ (nếu có) trước khi kiểm tra lại
+        //Xóa các thông báo lỗi cũ (nếu có) trước khi kiểm tra lại
         tilPassword.setError(null);
         tilConfirmPassword.setError(null);
 
-        // Bước 1: Kiểm tra rỗng
+        //Kiểm tra rỗng
         if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ tất cả thông tin!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Bước 2: Kiểm tra định dạng Email
+        //Kiểm tra định dạng Email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Định dạng Email không hợp lệ!", Toast.LENGTH_SHORT).show();
             edtEmail.requestFocus();
             return;
         }
 
-        // Bước 3: Kiểm tra độ mạnh Mật khẩu (1 Hoa, 1 thường, 1 số, 1 đặc biệt, >=8 ký tự)
+        //Kiểm tra độ mạnh Mật khẩu (1 Hoa, 1 thường, 1 số, 1 đặc biệt, >=8 ký tự)
         if (!isValidPassword(password)) {
             tilPassword.setError("Mật khẩu yếu! Cần >=8 ký tự gồm chữ Hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)");
             edtPassword.requestFocus();
             return;
         }
 
-        // Bước 4: Kiểm tra khớp mật khẩu
+        //Kiểm tra khớp mật khẩu
         if (!password.equals(confirmPassword)) {
             tilConfirmPassword.setError("Mật khẩu xác nhận không khớp!");
             edtConfirmPassword.requestFocus();
             return;
         }
 
-        // Bước 5: Gọi Firebase tạo tài khoản
+        //Gọi Firebase tạo tài khoản
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     Toast.makeText(this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
@@ -118,6 +120,34 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
     // Hàm phụ trợ Regex
+                    FirebaseUser firebaseUser = authResult.getUser();
+
+                    if (firebaseUser != null) {
+                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(fullName)
+                                .build();
+
+                        firebaseUser.updateProfile(profileUpdate)
+                                .addOnCompleteListener(task -> {
+                                    Toast.makeText(this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
+
+                                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    String errorMsg = "Đăng ký thất bại: " + e.getMessage();
+                    if (e.getMessage() != null && e.getMessage().contains("email address is already in use")) {
+                        errorMsg = "Email này đã được sử dụng cho một tài khoản khác!";
+                    }
+                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+                });
+    }
+
+    //Hàm phụ trợ Regex
     private boolean isValidPassword(String password) {
         String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
         return password != null && password.matches(passwordRegex);

@@ -14,9 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlydeadline.database.AppDatabase;
 import com.example.quanlydeadline.database.NotificationHelper;
+import com.example.quanlydeadline.database.NotificationSettingsDao;
 import com.example.quanlydeadline.database.SessionManager;
 import com.example.quanlydeadline.database.TaskDao;
 import com.example.quanlydeadline.models.DeadlineNotification;
+import com.example.quanlydeadline.models.NotificationSettings;
 import com.example.quanlydeadline.models.Task;
 
 import java.util.ArrayList;
@@ -63,10 +65,13 @@ public class NotificationActivity extends AppCompatActivity {
         SessionManager sessionManager = new SessionManager(this);
         int userId = sessionManager.getUserId();
         TaskDao taskDao = AppDatabase.getDatabase(this).taskDao();
+        NotificationSettingsDao settingsDao = AppDatabase.getDatabase(this).notificationSettingsDao();
 
         new Thread(() -> {
             List<Task> tasks = taskDao.getAllTasksByUser(userId);
-            allNotifications = NotificationHelper.generateNotifications(tasks);
+            // ✅ Lấy cài đặt thật của user để áp dụng filter
+            NotificationSettings settings = settingsDao.getSettings(userId);
+            allNotifications = NotificationHelper.generateNotifications(tasks, settings);
             runOnUiThread(this::renderNotifications);
         }).start();
     }
