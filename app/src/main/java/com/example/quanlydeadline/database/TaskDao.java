@@ -52,4 +52,7 @@ public interface TaskDao {
     // ✅ MỚI
     @Query("UPDATE tasks SET updated_at = :updatedAt WHERE id = :taskId")
     void touchUpdatedAt(int taskId, long updatedAt);
+
+    @Query("SELECT MAX(priority) FROM tasks WHERE project_id = :projectId AND is_done = 0")
+    int getMaxPriorityByProject(int projectId);
 }
