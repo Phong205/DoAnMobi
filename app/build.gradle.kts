@@ -44,14 +44,14 @@ dependencies {
     // Firebase BOM — quản lý version tự động cho tất cả các gói Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
 
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-storage")
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
 
     // Thư viện cần thiết cho Google Sign-In (Credential Manager)
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // AppCompat
     implementation(
@@ -77,11 +77,6 @@ dependencies {
     implementation(
         "androidx.cardview:cardview:1.0.0"
     )
-    implementation(libs.firebase.auth)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.firebase.storage)
-    implementation(libs.googleid)
 
     // Room Database
     val roomVersion = "2.6.1"
