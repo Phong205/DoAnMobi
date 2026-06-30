@@ -177,11 +177,16 @@ public class ProjectListActivity extends AppCompatActivity implements ProjectAda
                         syncManager.syncProject(existingProject);
                         Toast.makeText(this, "Đã cập nhật đồ án", Toast.LENGTH_SHORT).show();
                     } else {
+                        // THÊM 3 DÒNG NÀY:
+                        if (currentUserId <= 0) {
+                            Toast.makeText(this, "Lỗi: chưa đăng nhập", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         Project newProject = new Project(
                                 currentUserId, name, description,
                                 System.currentTimeMillis(), selectedDueDate
                         );
-                        // ✅ insertProject trả về id mới từ Room (autoGenerate)
                         long newId = projectDao.insertProject(newProject);
                         newProject.id = (int) newId;
                         syncManager.syncProject(newProject);
