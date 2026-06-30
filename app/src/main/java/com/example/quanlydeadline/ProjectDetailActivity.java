@@ -50,7 +50,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
     private FirebaseSyncManager syncManager;
     private int projectId;
     private long selectedDueDate = 0;
-
+    private TextView currentTvFileName = null;
+    private android.widget.ImageButton currentBtnClearFile = null;
     // Tab filter: "todo", "inprogress", "done", "overdue"
     private String currentTab = "todo";
 
@@ -188,6 +189,34 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
         TextView btnMedium = dialogView.findViewById(R.id.btnPriorityMedium);
         TextView btnHigh = dialogView.findViewById(R.id.btnPriorityHigh);
 
+        // ── THÊM VÀO SAU DÒNG: TextView btnHigh = dialogView.findViewById(R.id.btnPriorityHigh);
+
+        com.google.android.material.button.MaterialButton btnAttachFile = dialogView.findViewById(R.id.btnAttachFile);
+        TextView tvAttachedFileName = dialogView.findViewById(R.id.tvAttachedFileName);
+        android.widget.ImageButton btnClearFile = dialogView.findViewById(R.id.btnClearFile);
+
+// Reset file mỗi lần mở dialog
+        selectedFileUri = null;
+        selectedFileName = null;
+        tvAttachedFileName.setText("Chưa có file nào");
+        btnClearFile.setVisibility(View.GONE);
+
+// Click "Chọn File" → mở file picker
+        btnAttachFile.setOnClickListener(v -> {
+            // Lưu tạm 2 view này để dùng trong callback filePickerLauncher
+            currentTvFileName = tvAttachedFileName;
+            currentBtnClearFile = btnClearFile;
+            openFilePicker();
+        });
+
+// Click X → xóa file đã chọn
+        btnClearFile.setOnClickListener(v -> {
+            selectedFileUri = null;
+            selectedFileName = null;
+            tvAttachedFileName.setText("Chưa có file nào");
+            btnClearFile.setVisibility(View.GONE);
+        });
+
         boolean isEdit = existingTask != null;
         selectedDueDate = isEdit ? existingTask.dueDate : 0;
         final int[] selectedPriority = {1}; // 0=thấp, 1=trung bình, 2=cao
@@ -265,10 +294,8 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
                         Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
                     } else {
                         Task newTask = new Task(projectId, title, note, selectedDueDate, false);
-                        newTask.priority = selectedPriority[0]; // 2705 L01b0u priority 011100e3 ch1ecdn
-                        long newId = taskDao.insertTask(newTask);
-                        newTask.id = (int) newId;
-                        syncManager.syncTask(newTask);
+                        newTask.priority = selectedPriority[0];
+                        uploadFileAndSaveTask(newTask);  // ← tự động upload file nếu có, rồi mới lưu
                         Toast.makeText(this, "Đã thêm", Toast.LENGTH_SHORT).show();
                     }
                     loadTasks();
@@ -336,9 +363,16 @@ public class ProjectDetailActivity extends AppCompatActivity implements TaskAdap
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     selectedFileUri = result.getData().getData();
-                    // Lấy tên file thực tế từ Uri
                     selectedFileName = getFileName(selectedFileUri);
-                    Toast.makeText(this, "Đã chọn file: " + selectedFileName, Toast.LENGTH_SHORT).show();
+                    // Cập nhật UI trong dialog
+                    if (currentTvFileName != null) {
+                        currentTvFileName.setText(selectedFileName);
+                        currentTvFileName.setTextColor(android.graphics.Color.parseColor("#1E293B"));
+                    }
+                    if (currentBtnClearFile != null) {
+                        currentBtnClearFile.setVisibility(View.VISIBLE);
+                    }
+                    Toast.makeText(this, "Đã chọn: " + selectedFileName, Toast.LENGTH_SHORT).show();
                 }
             }
     );
